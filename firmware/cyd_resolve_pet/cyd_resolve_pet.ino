@@ -96,47 +96,36 @@ void audioPlayToneWrapper(int freq, int durationMs) {
   soundFx.playTone(freq, durationMs);
 }
 
-// RGB Underglow Control (Active LOW)
+// RGB Underglow Control (Active LOW PWM: 0 = max brightness, 255 = OFF)
 void setRgbLed(uint8_t r, uint8_t g, uint8_t b) {
-  digitalWrite(RGB_LED_R, r ? LOW : HIGH);
-  digitalWrite(RGB_LED_G, g ? LOW : HIGH);
-  digitalWrite(RGB_LED_B, b ? LOW : HIGH);
+  analogWrite(RGB_LED_R, 255 - r);
+  analogWrite(RGB_LED_G, 255 - g);
+  analogWrite(RGB_LED_B, 255 - b);
 }
 
+// Always-On Living Candle-Flame Underglow (Red <-> Orange <-> Golden Yellow)
 void updateUnderglow() {
-  switch (currentMood) {
-    case MOOD_ALARM:
-      if ((millis() / 150) % 2 == 0) setRgbLed(255, 0, 0);
-      else setRgbLed(0, 0, 0);
-      break;
+  unsigned long ms = millis();
+  float t = ms * 0.001f;
 
-    case MOOD_LAUGH:
-      if ((millis() / 80) % 2 == 0) setRgbLed(255, 120, 0);
-      else setRgbLed(180, 40, 0);
-      break;
+  // Multi-harmonic candle flame oscillation + organic micro-gust flicker
+  float wave = (sin(t * 3.7f) * 0.35f) +
+               (sin(t * 8.3f) * 0.25f) +
+               (cos(t * 17.1f) * 0.20f) +
+               ((random(0, 100) / 100.0f) * 0.20f);
+  float norm = constrain((wave + 0.60f) / 1.40f, 0.0f, 1.0f);
 
-    case MOOD_CHOMP:
-      if ((millis() / 200) % 2 == 0) setRgbLed(0, 255, 60);
-      else setRgbLed(180, 0, 255);
-      break;
+  // Red stays hot and dominant (210..255); Green modulates (8..180) to shift Red -> Orange -> Golden Yellow
+  uint8_t flameR = (uint8_t)constrain(215 + (int)(norm * 40.0f), 190, 255);
+  uint8_t flameG = (uint8_t)constrain(8 + (int)(norm * 172.0f), 5, 185);
 
-    case MOOD_POKED:
-      setRgbLed(255, 0, 60);
-      break;
-
-    case MOOD_IDLE:
-    default:
-      if (petRenderer.isSleeping()) {
-        uint8_t breath = ((millis() / 80) % 2 == 0) ? 40 : 10;
-        setRgbLed(0, 0, breath);
-      } else if (petRenderer.isDozing()) {
-        setRgbLed(0, 20, 20);
-      } else if (WiFi.status() == WL_CONNECTED) {
-        setRgbLed(0, 30, 0);
-      } else {
-        setRgbLed(0, 20, 40); // Calm cyber blue in local/offline watch mode
-      }
-      break;
+  if (currentMood == MOOD_ALARM) {
+    // Rapid intense Red/Yellow fire flare on new ticket alarm
+    if ((ms / 90) % 2 == 0) setRgbLed(255, 0, 0);
+    else setRgbLed(255, 190, 0);
+  } else {
+    // Continuous living candle flame between Red and Golden Yellow
+    setRgbLed(flameR, flameG, 0);
   }
 }
 

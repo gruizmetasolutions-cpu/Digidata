@@ -76,8 +76,8 @@
           <button onclick="setScreenMode('tickets')" class="px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-semibold hover:border-cyan-400 transition cursor-pointer">
             📋 Tickets (4)
           </button>
-          <button onclick="setScreenMode('badge')" class="px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-semibold hover:border-amber-400 transition cursor-pointer">
-            🪪 Gafete CEO
+          <button onclick="setScreenMode('badge')" class="px-2.5 py-2 rounded-lg border border-amber-400 bg-amber-500/20 text-amber-200 font-semibold hover:bg-amber-500/30 transition cursor-pointer">
+            🔥 Gafete CEO
           </button>
         </div>
       </div>
@@ -311,7 +311,7 @@
     const canvas = document.getElementById('tftCanvas');
     const ctx = canvas.getContext('2d');
 
-    let screenMode = 'face'; // 'face', 'tickets', 'detail', 'badge'
+    let screenMode = 'badge'; // 'face', 'watch', 'boot', 'tickets', 'detail', 'badge'
     let selectedTicketIdx = 0;
 
     let eyeStyle = 'mecha'; // 'mecha' (default Sovereign Mecha), 'cozmo', 'optic'
@@ -1089,36 +1089,181 @@
       ctx.fillText('VOLVER AL ROSTRO 👁️', 180, 219);
     }
 
-    // Reuse Executive Badge Screen
+    const badgeEmbers = Array.from({ length: 42 }, () => ({
+      x: Math.random() * 320,
+      y: 180 + Math.random() * 60,
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: -(1.2 + Math.random() * 2.5),
+      size: 1.5 + Math.random() * 3.5,
+      life: Math.random()
+    }));
+
+    function updateCandleFlameUnderglow() {
+      const wave = (Math.sin(tick * 0.11) * 0.35) + (Math.sin(tick * 0.27) * 0.25) + (Math.cos(tick * 0.63) * 0.20) + (Math.random() * 0.20);
+      const norm = Math.max(0, Math.min(1, (wave + 0.6) / 1.4));
+      const r = 255;
+      const g = Math.round(15 + norm * 165);
+      const badge = document.getElementById('underglowBadge');
+      badge.textContent = `🕯️ FLAMA VELA (R:${r} G:${g})`;
+      badge.style.borderColor = `rgb(${r}, ${g}, 0)`;
+      badge.style.color = `rgb(${r}, ${Math.min(255, g + 40)}, 60)`;
+      document.getElementById('cydBezel').style.boxShadow = `0 18px 45px rgba(0,0,0,0.8), 0 0 ${30 + norm * 28}px rgba(${r}, ${g}, 0, ${0.42 + norm * 0.28})`;
+    }
+
+    // Dynamic Full-Screen Inferno CEO Badge Screen
     function drawBadgeScreen(accent) {
-      ctx.fillStyle = '#060911';
+      ctx.fillStyle = '#040508';
       ctx.fillRect(0, 0, 320, 240);
 
-      // Cyber border
-      ctx.strokeStyle = accent;
+      // Sweeping Heat Laser
+      const scanY = (tick * 2.5) % 240;
+      const scanGrad = ctx.createLinearGradient(0, scanY - 12, 0, scanY + 4);
+      scanGrad.addColorStop(0, 'transparent');
+      scanGrad.addColorStop(1, 'rgba(255, 115, 0, 0.28)');
+      ctx.fillStyle = scanGrad;
+      ctx.fillRect(0, scanY - 12, 320, 16);
+
+      // Multi-Layered Procedural Roaring Flames along the Bottom & Sides
+      for (let x = 0; x < 320; x += 6) {
+        const edgeBoost = (x < 42 || x > 278) ? 1.55 : 1.0;
+        const n1 = Math.sin(x * 0.06 + tick * 0.18) * 14;
+        const n2 = Math.cos(x * 0.13 - tick * 0.26) * 10;
+        const n3 = Math.sin(x * 0.25 + tick * 0.35) * 6;
+        const hCrimson = Math.max(12, (46 + n1 + n2 + n3) * edgeBoost);
+        const hOrange  = hCrimson * 0.72;
+        const hGold    = hCrimson * 0.44;
+        const hCore    = hCrimson * 0.22;
+
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.moveTo(x - 4, 240); ctx.lineTo(x + 3, 240 - hCrimson); ctx.lineTo(x + 10, 240);
+        ctx.fill();
+
+        ctx.fillStyle = '#ff6a00';
+        ctx.beginPath();
+        ctx.moveTo(x - 2, 240); ctx.lineTo(x + 3, 240 - hOrange); ctx.lineTo(x + 8, 240);
+        ctx.fill();
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.moveTo(x, 240); ctx.lineTo(x + 3, 240 - hGold); ctx.lineTo(x + 6, 240);
+        ctx.fill();
+
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(x + 1, 240 - hCore, 4, hCore);
+      }
+
+      // Rising Embers
+      badgeEmbers.forEach(p => {
+        p.x += p.vx + Math.sin(tick * 0.1 + p.y * 0.05) * 0.4;
+        p.y += p.vy;
+        p.life -= 0.014;
+        if (p.y < 10 || p.life <= 0) {
+          p.x = Math.random() * 320;
+          p.y = 225 + Math.random() * 15;
+          p.life = 0.7 + Math.random() * 0.3;
+        }
+        ctx.fillStyle = p.life > 0.6 ? '#fef08a' : (p.life > 0.3 ? '#ff7300' : '#ef4444');
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+
+      // Top Sovereign Header Crown
+      ctx.fillStyle = 'rgba(10, 14, 23, 0.92)';
+      ctx.strokeStyle = '#ff7300';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(8, 6, 304, 24, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText('🔥 DATAHOLICS SOVEREIGN AI // VIP CLEARANCE', 28, 21);
+
+      // Flaming Dataholics Split-Wing Emblem + Predator Mecha Optics
+      const hoverY = Math.sin(tick * 0.08) * 2.5;
+      const gx = face.gazeX * 8;
+      const cx = 160, cy = 62 + hoverY;
+
+      ctx.fillStyle = '#ff7300';
+      ctx.beginPath();
+      ctx.moveTo(cx - 24, cy - 11); ctx.lineTo(cx - 4, cy - 16); ctx.lineTo(cx - 4, cy + 16); ctx.lineTo(cx - 24, cy + 11);
+      ctx.moveTo(cx + 4, cy - 16); ctx.lineTo(cx + 24, cy - 11); ctx.lineTo(cx + 24, cy + 11); ctx.lineTo(cx + 4, cy + 16);
+      ctx.fill();
+      ctx.fillStyle = '#040508';
+      ctx.beginPath();
+      ctx.arc(cx - 13, cy, 6, 0, Math.PI * 2);
+      ctx.arc(cx + 13, cy, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (face.blink < 0.5) {
+        ctx.fillStyle = '#00f0ff';
+        ctx.beginPath();
+        ctx.moveTo(52 + gx, 48 + hoverY); ctx.lineTo(108 + gx, 58 + hoverY); ctx.lineTo(98 + gx, 70 + hoverY); ctx.lineTo(46 + gx, 60 + hoverY);
+        ctx.moveTo(268 + gx, 48 + hoverY); ctx.lineTo(212 + gx, 58 + hoverY); ctx.lineTo(222 + gx, 70 + hoverY); ctx.lineTo(274 + gx, 60 + hoverY);
+        ctx.fill();
+        ctx.fillStyle = '#040508';
+        ctx.fillRect(76 + gx * 1.4, 52 + hoverY, 6, 14);
+        ctx.fillRect(238 + gx * 1.4, 52 + hoverY, 6, 14);
+        ctx.fillStyle = '#ff7300';
+        ctx.fillRect(78 + gx * 1.4, 54 + hoverY, 2, 10);
+        ctx.fillRect(240 + gx * 1.4, 54 + hoverY, 2, 10);
+      }
+
+      ctx.strokeStyle = '#ff7300';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(44 + gx, 43 + hoverY); ctx.lineTo(112 + gx, 55 + hoverY);
+      ctx.moveTo(276 + gx, 43 + hoverY); ctx.lineTo(208 + gx, 55 + hoverY);
+      ctx.stroke();
+
+      // Dynamic Hero Nameplate Card: ALONSO RUIZ
+      ctx.fillStyle = 'rgba(8, 11, 18, 0.88)';
+      ctx.strokeStyle = '#fbbf24';
       ctx.lineWidth = 2;
-      ctx.strokeRect(8, 8, 304, 224);
+      ctx.beginPath();
+      ctx.roundRect(18, 92 + hoverY * 0.5, 284, 52, 10);
+      ctx.fill();
+      ctx.stroke();
 
-      // Dataholics header
-      ctx.fillStyle = '#f59e0b';
+      ctx.font = '900 30px sans-serif';
+      ctx.fillStyle = '#451a03';
+      ctx.fillText('ALONSO RUIZ', 46, 130 + hoverY * 0.5);
+
+      const shineX = ((tick * 5) % 360) - 40;
+      const nameGrad = ctx.createLinearGradient(30, 100, 290, 135);
+      nameGrad.addColorStop(0, '#ffffff');
+      nameGrad.addColorStop(Math.max(0, Math.min(1, (shineX - 30) / 260)), '#fef08a');
+      nameGrad.addColorStop(Math.max(0, Math.min(1, (shineX + 10) / 260)), '#ff7300');
+      nameGrad.addColorStop(1, '#fbbf24');
+      ctx.fillStyle = nameGrad;
+      ctx.fillText('ALONSO RUIZ', 44, 128 + hoverY * 0.5);
+
+      // CEO Role Pill
+      ctx.fillStyle = 'rgba(18, 10, 6, 0.92)';
+      ctx.strokeStyle = '#ff7300';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(38, 152, 244, 26, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#00f0ff';
       ctx.font = 'bold 11px monospace';
-      ctx.fillText('⚡ DATAHOLICS SOVEREIGN AI // VIP PASS', 24, 34);
+      ctx.fillText('⚡ CEO • CHIEF EXECUTIVE OFFICER ⚡', 48, 169);
 
-      // Mini animated eyes on the badge!
-      drawSingleEye(125, 86, true, accent, 0.35);
-      drawSingleEye(195, 86, false, accent, 0.35);
+      // Bottom Obsidian Telemetry Plate over the flames
+      ctx.fillStyle = 'rgba(5, 7, 11, 0.90)';
+      ctx.strokeStyle = 'rgba(255, 115, 0, 0.7)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(24, 212, 272, 20, 5);
+      ctx.fill();
+      ctx.stroke();
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillText('ALONSO RUIZ', 82, 158);
-
-      ctx.fillStyle = accent;
-      ctx.font = 'bold 12px monospace';
-      ctx.fillText('CHIEF EXECUTIVE OFFICER (CEO)', 56, 178);
-
-      ctx.fillStyle = '#64748b';
-      ctx.font = '9px monospace';
-      ctx.fillText('SILICON eFUSE: 24:DC:C3:9A:45:88 • [TOCA PARA SALIR]', 24, 216);
+      ctx.fillStyle = '#fde047';
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('SILICON eFUSE: 24:DC:C3:9A:45:88 • [TOCA PARA SALIR]', 28, 225);
     }
 
     let bootProgress = 0;
@@ -1381,6 +1526,7 @@
 
     function renderLoop() {
       updateFacePhysics();
+      updateCandleFlameUnderglow();
       const accent = getActiveColor();
 
       if (screenMode === 'face') {

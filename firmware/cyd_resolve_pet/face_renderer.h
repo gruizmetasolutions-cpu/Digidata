@@ -707,54 +707,158 @@ public:
       _gfx->startWrite();
       _gfx->fillScreen(C_VOID_BG);
 
-      _gfx->drawRoundRect(6, 6, 308, 228, 12, C_DATA_ORANGE);
-      _gfx->drawRoundRect(8, 8, 304, 224, 10, C_ARMOR_EDGE);
-
-      _gfx->fillRoundRect(12, 12, 296, 24, 6, C_CARBON_CARD);
-      _gfx->setTextColor(C_DATA_ORANGE);
-      _gfx->setTextSize(1);
-      _gfx->drawString("DATAHOLICS SOVEREIGN AI // VIP CREDENTIAL", 28, 20);
-
-      _gfx->setTextSize(3);
-      _gfx->setTextColor(C_WHITE_PURE);
-      _gfx->drawString(nameFirst, 38, 122);
-      _gfx->setTextColor(C_DATA_ORANGE);
-      _gfx->drawString(nameLast, 172, 122);
-
-      _gfx->fillRoundRect(32, 162, 256, 26, 6, C_CARBON_CARD);
-      _gfx->drawRoundRect(32, 162, 256, 26, 6, C_EXEC_GOLD);
-      _gfx->setTextColor(C_EXEC_GOLD);
-      _gfx->setTextSize(1);
-      _gfx->drawString("CEO  •  CHIEF EXECUTIVE OFFICER", 60, 171);
-
-      _gfx->setTextColor(C_TEXT_MUTED);
-      _gfx->drawString(String("ID: ") + mac + "  •  TOCA PARA VOLVER", 36, 206);
+      // Left & Right Vertical Flame Armor Rails (x=4..45, x=275..315, y=38..172)
+      for (int side = 0; side < 2; side++) {
+        int rx = (side == 0) ? 6 : 276;
+        _gfx->fillRoundRect(rx, 40, 38, 132, 8, C_CARBON_CARD);
+        _gfx->drawRoundRect(rx, 40, 38, 132, 8, C_DATA_ORANGE);
+        _gfx->drawFastVLine(rx + 19, 46, 120, C_ARMOR_DARK);
+        for (int s = 0; s < 5; s++) {
+          uint16_t fCol = (s == 0) ? C_EXEC_GOLD : ((s < 3) ? C_DATA_ORANGE : C_ALERT_RED);
+          _gfx->fillTriangle(rx + 8, 158 - s * 22, rx + 19, 142 - s * 22, rx + 30, 158 - s * 22, fCol);
+        }
+      }
       _gfx->endWrite();
       _bgCleared = true;
     }
 
-    // Animated Dataholics Emblem + Aggressive Mini-Optics in _banner at y=56
+    // 1. TOP SOVEREIGN HEADER CROWN (y = 0..35) -> _banner
     if (_bannerReady) {
+      _banner.fillScreen(C_VOID_BG);
+      _banner.fillRoundRect(6, 4, 308, 26, 6, C_CARBON_CARD);
+      _banner.drawRoundRect(6, 4, 308, 26, 6, C_DATA_ORANGE);
+      _banner.drawFastHLine(20, 4, 280, C_EXEC_GOLD);
+
+      // Animated Flame Beacons in Header Corners
+      uint16_t beaconCol = ((_animTick / 4) % 2 == 0) ? C_EXEC_GOLD : C_ALERT_RED;
+      _banner.fillTriangle(14, 23, 19, 10, 24, 23, C_DATA_ORANGE);
+      _banner.fillTriangle(16, 23, 19, 14, 22, 23, beaconCol);
+      _banner.fillTriangle(296, 23, 301, 10, 306, 23, C_DATA_ORANGE);
+      _banner.fillTriangle(298, 23, 301, 14, 304, 23, beaconCol);
+
+      _banner.setTextColor(C_EXEC_GOLD);
+      _banner.setTextSize(1);
+      _banner.drawString("DATAHOLICS SOVEREIGN AI // VIP CLEARANCE", 38, 13);
+      _banner.pushSprite(_gfx, 0, 0);
+    }
+
+    // 2. CENTER INFERNO HERO ARENA (x = 50..269, y = 36..175) -> _canvas (220x140)
+    if (_spriteReady) {
       if (_animTick >= _nextBlinkTick) {
         _blink = 1.0f;
-        _nextBlinkTick = _animTick + 90 + random(0, 90);
+        _nextBlinkTick = _animTick + 85 + random(0, 80);
       }
       _blink += (0.0f - _blink) * 0.35f;
 
-      _banner.fillScreen(C_VOID_BG);
-      _drawMiniDataholicsEmblem(_banner, 160, 18, 2, C_DATA_ORANGE, C_VOID_BG);
+      _canvas.fillScreen(C_VOID_BG);
 
-      if (_blink < 0.5f) {
-        // Sharp predatory mini-optics flanking the Dataholics emblem
-        _banner.fillTriangle(64, 10, 108, 18, 70, 26, C_TIRA_CYAN);
-        _banner.fillTriangle(256, 10, 212, 18, 250, 26, C_TIRA_CYAN);
-        _banner.drawLine(62, 7, 110, 15, C_DATA_ORANGE);
-        _banner.drawLine(258, 7, 210, 15, C_DATA_ORANGE);
-      } else {
-        _banner.drawLine(64, 18, 108, 18, C_DATA_ORANGE);
-        _banner.drawLine(212, 18, 256, 18, C_DATA_ORANGE);
+      // Rising Procedural Fire Embers inside Arena
+      for (int e = 0; e < 18; e++) {
+        int ex = (e * 37 + (int)(_animTick * (1 + (e % 3)))) % 214 + 3;
+        int ey = 138 - (((int)_animTick * (2 + (e % 3)) + e * 19) % 134);
+        uint16_t eCol = (ey > 95) ? C_EXEC_GOLD : ((ey > 50) ? C_DATA_ORANGE : C_ALERT_RED);
+        int eSize = (e % 3 == 0) ? 3 : 2;
+        _canvas.fillRect(ex, ey, eSize, eSize, eCol);
       }
-      _banner.pushSprite(_gfx, 0, 56);
+
+      int hoverY = (int)(sin(_animTick * 0.14f) * 3.0f);
+      int gx = (int)(sin(_animTick * 0.06f) * 6.0f);
+
+      // Flaming Aura behind Dataholics Split-Wing Emblem
+      int cx = 110, cy = 24 + hoverY;
+      for (int f = -26; f <= 26; f += 6) {
+        int fh = 10 + (int)(sin(_animTick * 0.3f + f) * 5.0f);
+        _canvas.fillTriangle(cx + f - 4, cy + 12, cx + f, cy - fh, cx + f + 4, cy + 12, C_ALERT_RED);
+      }
+      _drawMiniDataholicsEmblem(_canvas, cx, cy, 2, C_DATA_ORANGE, C_VOID_BG);
+
+      // Predator Mecha Optics flanking the Flaming Emblem
+      if (_blink < 0.5f) {
+        _canvas.fillTriangle(10 + gx, 14 + hoverY, 64 + gx, 23 + hoverY, 54 + gx, 34 + hoverY, C_TIRA_CYAN);
+        _canvas.fillTriangle(10 + gx, 14 + hoverY, 54 + gx, 34 + hoverY, 6 + gx, 25 + hoverY, C_TIRA_CYAN);
+
+        _canvas.fillTriangle(210 + gx, 14 + hoverY, 156 + gx, 23 + hoverY, 166 + gx, 34 + hoverY, C_TIRA_CYAN);
+        _canvas.fillTriangle(210 + gx, 14 + hoverY, 166 + gx, 34 + hoverY, 214 + gx, 25 + hoverY, C_TIRA_CYAN);
+
+        // Predator Vertical Slits
+        _canvas.fillRect(34 + gx, 18 + hoverY, 5, 12, C_VOID_BG);
+        _canvas.fillRect(36 + gx, 20 + hoverY, 2, 8, C_DATA_ORANGE);
+        _canvas.fillRect(180 + gx, 18 + hoverY, 5, 12, C_VOID_BG);
+        _canvas.fillRect(182 + gx, 20 + hoverY, 2, 8, C_DATA_ORANGE);
+      }
+      // Heavy Flaming Brow Blades
+      _canvas.drawLine(4 + gx, 9 + hoverY, 68 + gx, 20 + hoverY, C_DATA_ORANGE);
+      _canvas.drawLine(4 + gx, 10 + hoverY, 68 + gx, 21 + hoverY, C_EXEC_GOLD);
+      _canvas.drawLine(216 + gx, 9 + hoverY, 152 + gx, 20 + hoverY, C_DATA_ORANGE);
+      _canvas.drawLine(216 + gx, 10 + hoverY, 152 + gx, 21 + hoverY, C_EXEC_GOLD);
+
+      // Dynamic Hero Nameplate Card: ALONSO RUIZ
+      int cardY = 50 + (hoverY / 2);
+      _canvas.fillRoundRect(2, cardY, 216, 48, 8, C_CARBON_CARD);
+      _canvas.drawRoundRect(2, cardY, 216, 48, 8, C_EXEC_GOLD);
+      _canvas.drawRoundRect(3, cardY + 1, 214, 46, 7, C_DATA_ORANGE);
+
+      // Sweeping Molten-Gold Laser Highlight inside Nameplate
+      int shineX = (_animTick * 7) % 240 - 20;
+      if (shineX >= 4 && shineX <= 200) {
+        _canvas.fillRect(shineX, cardY + 3, 14, 42, 0x2104);
+        _canvas.drawFastHLine(shineX, cardY + 2, 14, C_WHITE_PURE);
+        _canvas.drawFastHLine(shineX, cardY + 45, 14, C_WHITE_PURE);
+      }
+
+      String fullName = nameFirst + " " + nameLast;
+      _canvas.setTextSize(3);
+      _canvas.setTextColor(0x4100); // Deep Ember Drop Shadow
+      _canvas.drawString(fullName, 13, cardY + 14);
+
+      uint16_t nameCol = ((_animTick / 6) % 3 == 0) ? C_EXEC_GOLD : C_WHITE_PURE;
+      _canvas.setTextColor(nameCol);
+      _canvas.drawString(fullName, 11, cardY + 12);
+
+      // CEO Role Pill with Flaming Trim
+      int pillY = 106;
+      _canvas.fillRoundRect(8, pillY, 204, 26, 6, C_ARMOR_DARK);
+      _canvas.drawRoundRect(8, pillY, 204, 26, 6, C_DATA_ORANGE);
+      _canvas.drawFastHLine(22, pillY, 176, C_EXEC_GOLD);
+      _canvas.setTextColor(C_TIRA_CYAN);
+      _canvas.setTextSize(1);
+      _canvas.drawString("CEO  •  CHIEF EXECUTIVE OFFICER", 18, pillY + 9);
+
+      _canvas.pushSprite(_gfx, FACE_X, 36);
+    }
+
+    // 3. ROARING PROCEDURAL FLAMES + SILICON ID (y = 176..239) -> _banner pushed at 176 & 204
+    if (_bannerReady) {
+      // Upper Flame Crest Band (y = 176..203)
+      _banner.fillScreen(C_VOID_BG);
+      for (int x = 0; x < 320; x += 6) {
+        float edgeBoost = (x < 48 || x > 272) ? 1.45f : 1.0f;
+        int wave = (int)((sin(x * 0.08f + _animTick * 0.25f) * 9.0f + cos(x * 0.15f - _animTick * 0.35f) * 6.0f) * edgeBoost);
+        int tipY = constrain(16 - wave, 1, 34);
+        _banner.fillTriangle(x - 3, 35, x + 3, tipY, x + 9, 35, C_ALERT_RED);
+        _banner.fillTriangle(x - 1, 35, x + 3, constrain(tipY + 8, 4, 35), x + 7, 35, C_DATA_ORANGE);
+        _banner.fillTriangle(x + 1, 35, x + 3, constrain(tipY + 15, 8, 35), x + 5, 35, C_EXEC_GOLD);
+      }
+      _banner.pushSprite(_gfx, 0, 176);
+
+      // Lower Roaring Flame Base + Obsidian Silicon ID Plate (y = 204..239)
+      _banner.fillScreen(C_ALERT_RED);
+      for (int x = 0; x < 320; x += 6) {
+        int wave = (int)(sin(x * 0.10f - _animTick * 0.30f) * 8.0f + cos(x * 0.21f + _animTick * 0.40f) * 5.0f);
+        int hGold = constrain(18 + wave, 6, 34);
+        int hCore = constrain(10 + wave / 2, 3, 24);
+        _banner.fillTriangle(x - 4, 35, x + 3, 35 - constrain(hGold + 8, 8, 35), x + 10, 35, C_DATA_ORANGE);
+        _banner.fillTriangle(x - 2, 35, x + 3, 35 - hGold, x + 8, 35, C_EXEC_GOLD);
+        _banner.fillRect(x + 1, 35 - hCore, 4, hCore, 0xFFF0);
+      }
+
+      // Floating Obsidian ID Plate over the Fire
+      _banner.fillRoundRect(20, 8, 280, 22, 6, C_VOID_BG);
+      _banner.drawRoundRect(20, 8, 280, 22, 6, C_EXEC_GOLD);
+      _banner.setTextColor(C_EXEC_GOLD);
+      _banner.setTextSize(1);
+      _banner.drawString(String("ID: ") + mac + " • [TOCA PARA SALIR]", 32, 15);
+      _banner.pushSprite(_gfx, 0, 204);
     }
   }
 
