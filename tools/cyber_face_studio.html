@@ -62,16 +62,22 @@
           </div>
         </div>
 
-        <!-- Quick Screen Navigation Bar (Reusing existing project screens) -->
-        <div class="w-full max-w-[512px] mt-4 grid grid-cols-3 gap-2 text-xs">
-          <button onclick="setScreenMode('face')" class="px-3 py-2 rounded-lg border border-cyan-500/50 bg-cyan-500/10 text-cyan-300 font-semibold hover:bg-cyan-500/20 transition cursor-pointer">
-            👁️ Rostro & Dashboard
+        <!-- Quick Screen Navigation Bar (Dual Watchfaces + Boot + Tickets + Badge) -->
+        <div class="w-full max-w-[512px] mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+          <button onclick="setScreenMode('face')" class="px-2.5 py-2 rounded-lg border border-cyan-500/50 bg-cyan-500/10 text-cyan-300 font-semibold hover:bg-cyan-500/20 transition cursor-pointer">
+            👁️ Carátula 1: Rostro
           </button>
-          <button onclick="setScreenMode('tickets')" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-semibold hover:border-cyan-400 transition cursor-pointer">
-            📋 Lista de Tickets (4)
+          <button onclick="setScreenMode('watch')" class="px-2.5 py-2 rounded-lg border border-orange-500/50 bg-orange-500/15 text-orange-300 font-semibold hover:bg-orange-500/25 transition cursor-pointer">
+            ⌚ Carátula 2: Reloj
           </button>
-          <button onclick="setScreenMode('badge')" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-semibold hover:border-amber-400 transition cursor-pointer">
-            🪪 Modo Gafete Ejecutivo
+          <button onclick="triggerBootPreview()" class="px-2.5 py-2 rounded-lg border border-amber-500/50 bg-amber-500/10 text-amber-300 font-semibold hover:bg-amber-500/20 transition cursor-pointer">
+            🚀 Boot (2.5s)
+          </button>
+          <button onclick="setScreenMode('tickets')" class="px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-semibold hover:border-cyan-400 transition cursor-pointer">
+            📋 Tickets (4)
+          </button>
+          <button onclick="setScreenMode('badge')" class="px-2.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-semibold hover:border-amber-400 transition cursor-pointer">
+            🪪 Gafete CEO
           </button>
         </div>
       </div>
@@ -1128,6 +1134,264 @@
       ctx.fillText('SILICON eFUSE: 24:DC:C3:9A:45:88 • [TOCA PARA SALIR]', 24, 216);
     }
 
+    let bootProgress = 0;
+    function triggerBootPreview() {
+      initAudio();
+      bootProgress = 0;
+      screenMode = 'boot';
+      document.getElementById('screenStateLabel').textContent = 'MODE: DATAHOLICS BOOT (2.5s)';
+      playTone(523, 60, 'triangle', 0);
+      playTone(659, 60, 'triangle', 600);
+      playTone(784, 60, 'triangle', 1300);
+      playTone(1046, 120, 'sine', 2100);
+    }
+
+    function drawBootScreen() {
+      bootProgress += 1 / 150; // ~2.5s at 60fps
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, 320, 240);
+
+      // Watch OS Outer Bezel
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(6, 6, 308, 228, 18);
+      ctx.stroke();
+
+      // Dataholics Split-Wing Orange Emblem
+      const cx = 160, cy = 70;
+      ctx.fillStyle = '#ff7300';
+      ctx.beginPath();
+      ctx.moveTo(cx - 46, cy - 22);
+      ctx.lineTo(cx - 6, cy - 30);
+      ctx.lineTo(cx - 6, cy + 30);
+      ctx.lineTo(cx - 46, cy + 22);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(cx + 6, cy - 30);
+      ctx.lineTo(cx + 46, cy - 22);
+      ctx.lineTo(cx + 46, cy + 22);
+      ctx.lineTo(cx + 6, cy + 30);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(cx - 25, cy, 12, 0, Math.PI * 2);
+      ctx.arc(cx + 25, cy, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(cx - 25, cy - 5, 50, 10);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px monospace';
+      ctx.fillText('D A T A H O L I C S', 64, 124);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('SOVEREIGN SMARTWATCH OS // v3.5', 68, 142);
+
+      // Executive Pill
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.roundRect(54, 152, 212, 22, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText('ALONSO RUIZ  •  CEO EDITION', 80, 166);
+
+      // Progress Bar
+      ctx.strokeStyle = '#334155';
+      ctx.beginPath();
+      ctx.roundRect(40, 190, 240, 12, 5);
+      ctx.stroke();
+
+      const fillW = Math.min(234, Math.round(bootProgress * 234));
+      ctx.fillStyle = '#ff7300';
+      ctx.beginPath();
+      ctx.roundRect(43, 193, Math.max(6, fillW), 6, 3);
+      ctx.fill();
+
+      if (bootProgress >= 1.0) {
+        setScreenMode('watch');
+      }
+    }
+
+    function drawWatchScreen(accent) {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = ':' + String(now.getSeconds()).padStart(2, '0');
+
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, 320, 240);
+
+      // 1. Top Smartwatch Crown Bar
+      ctx.fillStyle = '#0b111e';
+      ctx.strokeStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(6, 3, 308, 28, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#111c30';
+      ctx.strokeStyle = accent;
+      ctx.beginPath();
+      ctx.roundRect(10, 6, 92, 22, 9);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = accent;
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('< ROSTRO 2.5D', 17, 20);
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillText('JUE 05 NOV', 128, 20);
+
+      ctx.fillStyle = '#2be86b';
+      ctx.beginPath();
+      ctx.arc(236, 17, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillText('WIFI ONLINE', 246, 20);
+
+      // 2. Side Watch Complication Rails
+      ctx.fillStyle = '#0b111e';
+      ctx.strokeStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(6, 46, 38, 144, 12);
+      ctx.roundRect(276, 46, 38, 144, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 8px monospace';
+      ctx.fillText('PULSO', 12, 62);
+      ctx.strokeRect(19, 72, 12, 88);
+      ctx.fillStyle = accent;
+      ctx.fillRect(21, 96, 8, 62);
+      ctx.fillText('98%', 16, 176);
+
+      ctx.fillStyle = '#64748b';
+      ctx.fillText('RED', 286, 62);
+      ctx.fillStyle = '#2be86b';
+      ctx.fillRect(283, 134, 4, 10);
+      ctx.fillRect(290, 124, 4, 20);
+      ctx.fillRect(297, 114, 4, 30);
+      ctx.fillRect(304, 102, 4, 42);
+      ctx.fillText('SYNC', 283, 176);
+
+      // 3. Center Chronograph Dial (220x140 at x=50, y=48)
+      ctx.fillStyle = '#0b111e';
+      ctx.strokeStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(50, 48, 220, 140, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 34px monospace';
+      ctx.fillText(`${hh}:${mm}`, 64, 88);
+
+      ctx.fillStyle = '#111c30';
+      ctx.strokeStyle = '#ff7300';
+      ctx.beginPath();
+      ctx.roundRect(184, 62, 42, 20, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ff7300';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText(ss, 193, 76);
+
+      // Mini Guardian Eyes inside Dial
+      const eh = Math.max(2, Math.round(12 * (1 - face.upperLidL)));
+      ctx.fillStyle = accent;
+      ctx.beginPath();
+      ctx.roundRect(232, 84, 12, eh, 3);
+      ctx.roundRect(248, 84, 12, eh, 3);
+      ctx.fill();
+
+      // Live ECG Heartbeat Wave
+      ctx.strokeStyle = '#ff7300';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      const ecgHead = (tick * 3) % 190;
+      for (let x = 0; x < 190; x += 2) {
+        const dist = Math.abs(x - ecgHead);
+        const ey = 102 + (dist < 14 ? Math.sin((x - ecgHead) * 0.6) * 6 : 0);
+        if (x === 0) ctx.moveTo(64 + x, ey);
+        else ctx.lineTo(64 + x, ey);
+      }
+      ctx.stroke();
+
+      // Complication 1: Activos
+      ctx.fillStyle = '#111c30';
+      ctx.strokeStyle = activeTickets > 0 ? '#f43f5e' : accent;
+      ctx.beginPath();
+      ctx.roundRect(60, 114, 96, 46, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(80, 137, 12, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 8px monospace';
+      ctx.fillText('ACTIVOS', 100, 129);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px monospace';
+      ctx.fillText(String(activeTickets), 100, 148);
+
+      // Complication 2: Resueltos
+      ctx.fillStyle = '#111c30';
+      ctx.strokeStyle = '#2be86b';
+      ctx.beginPath();
+      ctx.roundRect(164, 114, 96, 46, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(184, 137, 12, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 8px monospace';
+      ctx.fillText('RESUELTOS', 202, 129);
+      ctx.fillStyle = '#2be86b';
+      ctx.font = 'bold 16px monospace';
+      ctx.fillText(String(resolvedToday), 202, 148);
+
+      ctx.fillStyle = accent;
+      ctx.font = '9px monospace';
+      ctx.fillText(latestBannerText.substring(0, 32), 64, 176);
+
+      // 4. Bottom Smartwatch Dock
+      ctx.fillStyle = '#0b111e';
+      ctx.strokeStyle = accent;
+      ctx.beginPath();
+      ctx.roundRect(6, 208, 96, 28, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = accent;
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('ROSTRO 2.5D', 20, 225);
+
+      ctx.fillStyle = '#0b111e';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.roundRect(108, 208, 104, 28, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText('GAFETE CEO', 130, 225);
+
+      ctx.fillStyle = '#0b111e';
+      ctx.strokeStyle = '#ff7300';
+      ctx.beginPath();
+      ctx.roundRect(218, 208, 96, 28, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ff7300';
+      ctx.fillText('TICKETS >', 240, 225);
+    }
+
     function renderLoop() {
       updateFacePhysics();
       const accent = getActiveColor();
@@ -1136,6 +1400,10 @@
         drawTopHud(accent);
         drawFaceArena(accent);
         drawBottomTicker(accent);
+      } else if (screenMode === 'watch') {
+        drawWatchScreen(accent);
+      } else if (screenMode === 'boot') {
+        drawBootScreen();
       } else if (screenMode === 'tickets') {
         drawTicketListScreen(accent);
       } else if (screenMode === 'detail') {
