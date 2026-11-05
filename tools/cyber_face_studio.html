@@ -314,9 +314,9 @@
     let screenMode = 'face'; // 'face', 'tickets', 'detail', 'badge'
     let selectedTicketIdx = 0;
 
-    let eyeStyle = 'cozmo'; // 'cozmo', 'optic', 'mecha'
-    let baseColor = '#38bdf8';
-    let baseColorName = 'CYAN';
+    let eyeStyle = 'mecha'; // 'mecha' (default Sovereign Mecha), 'cozmo', 'optic'
+    let baseColor = '#00f0ff';
+    let baseColorName = 'TIRA CYAN';
     let currentEmotion = 'idle';
     let emotionTimer = 0;
     let tick = 0;
@@ -331,14 +331,14 @@
       browY: 0,
       blink: 0,         // 0 = open, 1 = closed
       nextBlinkTick: 90,
-      upperLidL: 0,     // 0 to 1 closure
-      upperLidR: 0,
-      lowerLidL: 0,
-      lowerLidR: 0,
-      browAngleL: 0,    // radians
-      browAngleR: 0,
-      browLiftL: 0,
-      browLiftR: 0,
+      upperLidL: 0.22,  // Aggressive hunter glare
+      upperLidR: 0.22,
+      lowerLidL: 0.10,
+      lowerLidR: 0.10,
+      browAngleL: 0.28, // Fierce V-slant (\ /)
+      browAngleR: -0.28,
+      browLiftL: -2,
+      browLiftR: -2,
       eyeScaleL: 1,
       eyeScaleR: 1,
       pupilScale: 1,
@@ -599,57 +599,62 @@
       let tScaleL = 1, tScaleR = 1, tPupil = 1, tHappy = 0;
 
       if (currentEmotion === 'idle') {
-        tUpperL = 0.05; tUpperR = 0.05;
-        tBrowAngL = -0.04; tBrowAngR = 0.04;
+        tUpperL = 0.22; tUpperR = 0.22;
+        tLowerL = 0.10; tLowerR = 0.10;
+        tBrowAngL = 0.28; tBrowAngR = -0.28; // Confident Sovereign V-glare
+        tBrowLiftL = -2; tBrowLiftR = -2;
       } else if (currentEmotion === 'alarm') {
-        tUpperL = 0.28; tUpperR = 0.28;
-        tLowerL = 0.15; tLowerR = 0.15;
-        tBrowAngL = 0.38; tBrowAngR = -0.38; // Angry V-shape
+        tUpperL = 0.38; tUpperR = 0.38;
+        tLowerL = 0.18; tLowerR = 0.18;
+        tBrowAngL = 0.48; tBrowAngR = -0.48; // Lethal combat V-angle
         tBrowLiftL = -6; tBrowLiftR = -6;
-        tPupil = 0.72; // Contracted sharp combat pupil
+        tPupil = 0.70;
       } else if (currentEmotion === 'happy') {
-        tHappy = 1.0;
-        tLowerL = 0.55; tLowerR = 0.55;
-        tBrowAngL = -0.22; tBrowAngR = 0.22;
-        tBrowLiftL = 6 + Math.sin(tick * 0.35) * 3;
-        tBrowLiftR = 6 + Math.sin(tick * 0.35) * 3;
+        // SOBERBIO: Cocky asymmetric attitude
+        tUpperL = 0.42; tUpperR = 0.08;
+        tLowerL = 0.28; tLowerR = 0.14;
+        tBrowAngL = 0.32; tBrowAngR = -0.10;
+        tBrowLiftL = -4; tBrowLiftR = 7;
       } else if (currentEmotion === 'victory') {
-        tHappy = 0.75;
-        tScaleL = 1.12; tScaleR = 1.12;
-        tBrowLiftL = 8; tBrowLiftR = 8;
+        tUpperL = 0.12; tUpperR = 0.12;
+        tLowerL = 0.22; tLowerR = 0.22;
+        tBrowAngL = 0.36; tBrowAngR = -0.36;
+        tBrowLiftL = 3; tBrowLiftR = 3;
         tPupil = 1.25;
       } else if (currentEmotion === 'scan') {
         tUpperL = 0.38; tLowerL = 0.25;
         tScaleR = 1.15;
-        tBrowAngL = 0.18; tBrowAngR = -0.28;
+        tBrowAngL = 0.28; tBrowAngR = -0.28;
         tBrowLiftL = -4; tBrowLiftR = 7;
         face.targetGazeX = Math.sin(tick * 0.08) * 0.75;
       } else if (currentEmotion === 'skeptic') {
-        tUpperL = 0.52; tLowerL = 0.25; // Squinting left eye
-        tUpperR = 0.0;  tScaleR = 1.14; // Wide right eye
-        tBrowAngL = 0.25; tBrowAngR = -0.30;
+        tUpperL = 0.52; tLowerL = 0.25;
+        tUpperR = 0.05; tScaleR = 1.12;
+        tBrowAngL = 0.35; tBrowAngR = -0.15;
         tBrowLiftL = -6;  tBrowLiftR = 9;
       } else if (currentEmotion === 'sleep') {
         tUpperL = 0.88; tUpperR = 0.88;
-        tBrowAngL = -0.15; tBrowAngR = 0.15;
+        tBrowAngL = 0.15; tBrowAngR = -0.15;
         tBrowLiftL = -4; tBrowLiftR = -4;
       } else if (currentEmotion === 'glitch') {
-        tScaleL = 1.22; tScaleR = 0.82;
+        tUpperL = 0.32; tUpperR = 0.32;
+        tLowerL = 0.22; tLowerR = 0.22;
+        tBrowAngL = 0.42; tBrowAngR = -0.42;
         tPupil = 0.65;
-        tBrowLiftL = 10; tBrowLiftR = -5;
+        tBrowLiftL = -5; tBrowLiftR = -5;
       }
 
-      face.upperLidL = lerp(face.upperLidL, Math.max(tUpperL, face.blink), 0.22);
-      face.upperLidR = lerp(face.upperLidR, Math.max(tUpperR, face.blink), 0.22);
-      face.lowerLidL = lerp(face.lowerLidL, tLowerL, 0.20);
-      face.lowerLidR = lerp(face.lowerLidR, tLowerR, 0.20);
-      face.browAngleL = lerp(face.browAngleL, tBrowAngL, 0.18);
-      face.browAngleR = lerp(face.browAngleR, tBrowAngR, 0.18);
-      face.browLiftL = lerp(face.browLiftL, tBrowLiftL, 0.18);
-      face.browLiftR = lerp(face.browLiftR, tBrowLiftR, 0.18);
-      face.eyeScaleL = lerp(face.eyeScaleL, tScaleL, 0.20);
-      face.eyeScaleR = lerp(face.eyeScaleR, tScaleR, 0.20);
-      face.pupilScale = lerp(face.pupilScale, tPupil, 0.20);
+      face.upperLidL = lerp(face.upperLidL, Math.max(tUpperL, face.blink), 0.28);
+      face.upperLidR = lerp(face.upperLidR, Math.max(tUpperR, face.blink), 0.28);
+      face.lowerLidL = lerp(face.lowerLidL, tLowerL, 0.24);
+      face.lowerLidR = lerp(face.lowerLidR, tLowerR, 0.24);
+      face.browAngleL = lerp(face.browAngleL, tBrowAngL, 0.22);
+      face.browAngleR = lerp(face.browAngleR, tBrowAngR, 0.22);
+      face.browLiftL = lerp(face.browLiftL, tBrowLiftL, 0.22);
+      face.browLiftR = lerp(face.browLiftR, tBrowLiftR, 0.22);
+      face.eyeScaleL = lerp(face.eyeScaleL, tScaleL, 0.22);
+      face.eyeScaleR = lerp(face.eyeScaleR, tScaleR, 0.22);
+      face.pupilScale = lerp(face.pupilScale, tPupil, 0.24);
       face.happyArc = lerp(face.happyArc, tHappy, 0.20);
     }
 
@@ -666,226 +671,215 @@
     }
 
     function drawTopHud(accent) {
-      ctx.fillStyle = '#0b0f17';
-      ctx.fillRect(0, 0, 320, 26);
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, 26);
-      ctx.lineTo(320, 26);
-      ctx.stroke();
+      ctx.fillStyle = '#080d14';
+      ctx.fillRect(0, 0, 320, 30);
+      ctx.fillStyle = '#ff7300';
+      ctx.fillRect(16, 2, 288, 2);
 
-      // Left Pill: Executive Badge Trigger
-      ctx.fillStyle = '#161f30';
-      ctx.strokeStyle = accent;
+      // Left Pill: Switch to Watch OS
+      ctx.fillStyle = '#101826';
+      ctx.strokeStyle = '#ff7300';
       ctx.beginPath();
-      ctx.roundRect(4, 3, 112, 19, 4);
+      ctx.roundRect(8, 6, 88, 20, 5);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = '#ff7300';
       ctx.font = 'bold 9px monospace';
-      ctx.fillText('🪪 ALONSO (CEO)', 11, 16);
+      ctx.fillText('RELOJ OS >', 18, 19);
 
-      // Right Metric Pills: ACT & SLAIN
-      ctx.fillStyle = activeTickets > 0 ? '#3b1219' : '#111827';
-      ctx.strokeStyle = activeTickets > 0 ? '#f43f5e' : '#334155';
+      // Center Live Clock
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = ':' + String(now.getSeconds()).padStart(2, '0');
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px monospace';
+      ctx.fillText(`${hh}:${mm}`, 120, 21);
+      ctx.fillStyle = '#ff7300';
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText(ss, 168, 21);
+
+      // Right Metric Pill
+      ctx.fillStyle = '#101826';
+      ctx.strokeStyle = activeTickets > 0 ? '#f43f5e' : '#2be86b';
       ctx.beginPath();
-      ctx.roundRect(184, 3, 62, 19, 4);
+      ctx.roundRect(216, 6, 96, 20, 5);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = activeTickets > 0 ? '#fda4af' : '#94a3b8';
-      ctx.fillText(`ACT: ${activeTickets}`, 194, 16);
-
-      ctx.fillStyle = '#0d2818';
-      ctx.strokeStyle = '#2be86b';
-      ctx.beginPath();
-      ctx.roundRect(252, 3, 64, 19, 4);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = '#86efac';
-      ctx.fillText(`OK: ${resolvedToday}`, 262, 16);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`ACT:${activeTickets} OK:${resolvedToday}`, 226, 19);
     }
 
     function drawBottomTicker(accent) {
-      ctx.fillStyle = '#0b0f17';
-      ctx.fillRect(0, 206, 320, 34);
-      ctx.strokeStyle = accent;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, 206);
-      ctx.lineTo(320, 206);
-      ctx.stroke();
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 204, 320, 36);
 
-      // Status indicator dot
-      ctx.fillStyle = accent;
+      // Left Pill: ALONSO CEO
+      ctx.fillStyle = '#080d14';
+      ctx.strokeStyle = '#f59e0b';
       ctx.beginPath();
-      ctx.arc(12, 223, 4, 0, Math.PI * 2);
+      ctx.roundRect(4, 208, 98, 28, 7);
       ctx.fill();
-
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = 'bold 10px monospace';
-      ctx.fillText(latestBannerText.substring(0, 34), 22, 226);
-
-      // Tap indicator
-      ctx.fillStyle = accent;
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
       ctx.font = 'bold 9px monospace';
-      ctx.fillText('[DECK >]', 270, 226);
+      ctx.fillText('ALONSO CEO', 22, 225);
+
+      // Center Pill: Character Mode
+      ctx.fillStyle = '#080d14';
+      ctx.strokeStyle = '#ff7300';
+      ctx.beginPath();
+      ctx.roundRect(107, 208, 106, 28, 7);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ff7300';
+      let mLbl = 'MODO: SOBERANO';
+      if (currentEmotion === 'alarm') mLbl = 'MODO: COMBATE';
+      else if (currentEmotion === 'happy') mLbl = 'MODO: SOBERBIO';
+      else if (currentEmotion === 'victory') mLbl = 'MODO: OVERDRIVE';
+      else if (currentEmotion === 'glitch') mLbl = 'MODO: LOCK-ON';
+      ctx.fillText(mLbl, 118, 225);
+
+      // Right Pill: TICKETS
+      ctx.fillStyle = '#080d14';
+      ctx.strokeStyle = accent;
+      ctx.beginPath();
+      ctx.roundRect(218, 208, 98, 28, 7);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = accent;
+      ctx.fillText('TICKETS >', 240, 225);
     }
 
     function drawSingleEye(cx, cy, isLeft, accent, parallaxMult) {
-      const w = 68;
-      const h = (eyeStyle === 'cozmo' ? 54 : (eyeStyle === 'optic' ? 58 : 44)) * (isLeft ? face.eyeScaleL : face.eyeScaleR);
-      const breathY = Math.sin(tick * 0.05) * 2.2;
-      const gx = face.gazeX * 16 * parallaxMult + (face.glitchOffset ? (Math.random() - 0.5) * face.glitchOffset : 0);
-      const gy = face.gazeY * 11 * parallaxMult + breathY;
+      const w = 82;
+      const h = 42 * (isLeft ? face.eyeScaleL : face.eyeScaleR);
+      const gx = face.gazeX * 14 * parallaxMult + (face.glitchOffset ? (Math.random() - 0.5) * face.glitchOffset : 0);
+      const gy = face.gazeY * 8 * parallaxMult;
 
       const x = cx + gx;
       const y = cy + gy;
+      const hw = w / 2, hh = h / 2;
 
       ctx.save();
 
-      // Outer Eye Glow Halo
-      const grad = ctx.createRadialGradient(x, y, 6, x, y, 48);
-      grad.addColorStop(0, accent + '55');
-      grad.addColorStop(1, 'transparent');
-      ctx.fillStyle = grad;
+      // Recessed Armor Socket
+      ctx.fillStyle = '#101826';
+      ctx.strokeStyle = '#293548';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(x, y, 48, 0, Math.PI * 2);
+      ctx.roundRect(x - hw - 2, y - hh - 2, w + 4, h + 4, 6);
       ctx.fill();
+      ctx.stroke();
 
-      // Clip path for Eye Shape
+      // Clip path for Chamfered Hexagonal Mecha Optic
       ctx.beginPath();
-      if (eyeStyle === 'cozmo') {
-        ctx.roundRect(x - w / 2, y - h / 2, w, h, 16);
-      } else if (eyeStyle === 'optic') {
-        ctx.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
-      } else {
-        // Angular Mecha Optic polygon
-        const hw = w / 2, hh = h / 2;
-        ctx.moveTo(x - hw + 10, y - hh);
-        ctx.lineTo(x + hw - 6, y - hh);
-        ctx.lineTo(x + hw, y - hh + 12);
-        ctx.lineTo(x + hw - 8, y + hh);
-        ctx.lineTo(x - hw + 6, y + hh);
-        ctx.lineTo(x - hw, y + hh - 12);
-        ctx.closePath();
-      }
+      ctx.moveTo(x - hw + 10, y - hh);
+      ctx.lineTo(x + hw - 10, y - hh);
+      ctx.lineTo(x + hw, y - hh + 10);
+      ctx.lineTo(x + hw, y + hh - 10);
+      ctx.lineTo(x + hw - 10, y + hh);
+      ctx.lineTo(x - hw + 10, y + hh);
+      ctx.lineTo(x - hw, y + hh - 10);
+      ctx.lineTo(x - hw, y - hh + 10);
+      ctx.closePath();
       ctx.clip();
 
-      // Base Glowing Eye Fill
+      // Base Glowing Optic Lens
       ctx.fillStyle = accent;
-      ctx.fillRect(x - w / 2 - 2, y - h / 2 - 2, w + 4, h + 4);
+      ctx.fillRect(x - hw - 2, y - hh - 2, w + 4, h + 4);
 
-      // Scanline texture inside the eye (Cozmo / Cyber visor depth)
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
-      for (let sy = y - h / 2; sy < y + h / 2; sy += 3) {
-        ctx.fillRect(x - w / 2, sy, w, 1);
+      // Scanline texture inside the lens
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+      for (let sy = y - hh; sy < y + hh; sy += 3) {
+        ctx.fillRect(x - hw, sy, w, 1);
       }
 
-      // Inner 3D Iris, Pupil & Catchlight Highlights (if enabled)
+      // Precision Tactical Diamond Core & Vertical Predator Slit (NO round anime bubbles!)
       if (document.getElementById('chkPupils').checked) {
-        // Pupil moves with extra 1.35x parallax for spherical 3D depth!
-        const px = x + face.gazeX * 8 * parallaxMult;
-        const py = y + face.gazeY * 6 * parallaxMult;
-        const pRadius = 14 * face.pupilScale;
+        const px = x + face.gazeX * 9 * parallaxMult;
+        const py = y + face.gazeY * 5 * parallaxMult;
+        const rSize = 11 * face.pupilScale;
 
-        // Deep Iris Ring
-        ctx.fillStyle = '#060911';
+        // Obsidian Diamond Core
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(px, py, pRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Glowing Inner Core Ring
-        ctx.strokeStyle = '#ffffffaa';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(px, py, pRadius * 0.55, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Primary 3D Specular Catchlight (Top-Left reflection)
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(px - pRadius * 0.42, py - pRadius * 0.42, 4.2, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Secondary Catchlight (Bottom-Right lens reflection)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.beginPath();
-        ctx.arc(px + pRadius * 0.45, py + pRadius * 0.45, 2.0, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        // Even in pure Cozmo visor mode, add a subtle top-left corner shine for depth
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-        ctx.beginPath();
-        ctx.roundRect(x - w / 2 + 7, y - h / 2 + 6, 14, 5, 2);
-        ctx.fill();
-      }
-
-      // Upper Eyelid Mask (with slant angle for emotion)
-      const upperClosure = isLeft ? face.upperLidL : face.upperLidR;
-      const slant = isLeft ? face.browAngleL : face.browAngleR;
-      if (upperClosure > 0.01 || Math.abs(slant) > 0.02) {
-        ctx.fillStyle = '#070a10';
-        ctx.beginPath();
-        const lidY = (y - h / 2) + upperClosure * h;
-        const slantOffset = Math.sin(slant) * (w * 0.55);
-        ctx.moveTo(x - w, y - h);
-        ctx.lineTo(x + w, y - h);
-        ctx.lineTo(x + w / 2 + 4, lidY + slantOffset);
-        ctx.lineTo(x - w / 2 - 4, lidY - slantOffset);
+        ctx.moveTo(px, py - rSize);
+        ctx.lineTo(px + rSize, py);
+        ctx.lineTo(px, py + rSize);
+        ctx.lineTo(px - rSize, py);
         ctx.closePath();
         ctx.fill();
+
+        // Inner White Diamond Reticle
+        const ir = rSize * 0.65;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(px, py - ir);
+        ctx.lineTo(px + ir, py);
+        ctx.lineTo(px, py + ir);
+        ctx.lineTo(px - ir, py);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Vertical Predator Slit in Dataholics Orange
+        ctx.fillStyle = '#ff7300';
+        ctx.fillRect(px - 1.5, py - ir + 2, 3, ir * 2 - 4);
       }
 
-      // Lower Eyelid / Happy Crescent Mask
+      // Sharp Diagonal Visor Blade Glint
+      const glintX = isLeft ? (x - hw + 8) : (x + hw - 16);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(glintX, y - hh + 4);
+      ctx.lineTo(glintX + 8, y - hh + 12);
+      ctx.stroke();
+
+      // Aggressive Slanted Upper Eyelid Armor Cut
+      const upperClosure = isLeft ? face.upperLidL : face.upperLidR;
+      const slant = isLeft ? face.browAngleL : face.browAngleR;
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      const lidY = (y - hh) + upperClosure * h;
+      const slantOffset = Math.sin(slant) * (w * 0.42);
+      ctx.moveTo(x - w, y - h);
+      ctx.lineTo(x + w, y - h);
+      ctx.lineTo(x + hw + 4, lidY + slantOffset);
+      ctx.lineTo(x - hw - 4, lidY - slantOffset);
+      ctx.closePath();
+      ctx.fill();
+
+      // Sharp Lower Cheek Armor Cut
       const lowerClosure = isLeft ? face.lowerLidL : face.lowerLidR;
-      if (lowerClosure > 0.01 || face.happyArc > 0.05) {
-        ctx.fillStyle = '#070a10';
+      if (lowerClosure > 0.02) {
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
-        const lidY = (y + h / 2) - lowerClosure * h;
-        if (face.happyArc > 0.1) {
-          // Curved happy cheek mask (^ ^)
-          ctx.arc(x, y + h * 0.55, w * 0.54, Math.PI, Math.PI * 2);
-          ctx.lineTo(x + w, y + h);
-          ctx.lineTo(x - w, y + h);
-          ctx.closePath();
-        } else {
-          ctx.rect(x - w / 2 - 2, lidY, w + 4, h);
-        }
+        const botY = (y + hh) - lowerClosure * h;
+        ctx.moveTo(x - hw - 4, y + hh + 4);
+        ctx.lineTo(x + hw + 4, y + hh + 4);
+        ctx.lineTo(x + hw + 4, botY);
+        ctx.lineTo(x - hw - 4, botY + (isLeft ? 3 : -3));
+        ctx.closePath();
         ctx.fill();
       }
 
       ctx.restore();
 
-      // Floating Expressive Eyebrow Plate (Secondary Parallax Layer)
+      // Heavy Armored Dataholics Orange Brow Blade (Delayed Secondary Parallax)
       if (document.getElementById('chkBrows').checked) {
-        const bx = cx + face.browX * 19 * parallaxMult;
-        const by = cy - h / 2 - 11 - (isLeft ? face.browLiftL : face.browLiftR) + face.browY * 9 * parallaxMult + breathY;
+        const bx = cx + face.browX * 16 * parallaxMult;
+        const by = cy - hh - 4 - (isLeft ? face.browLiftL : face.browLiftR) + face.browY * 6 * parallaxMult;
         const ang = isLeft ? face.browAngleL : face.browAngleR;
 
         ctx.save();
         ctx.translate(bx, by);
         ctx.rotate(ang);
-        ctx.fillStyle = accent;
-        ctx.shadowColor = accent;
-        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#ff7300';
         ctx.beginPath();
-        ctx.roundRect(-w * 0.42, -3.5, w * 0.84, 6.5, 3);
+        ctx.roundRect(-w * 0.52, -3, w * 1.04, 6, 2);
         ctx.fill();
-        ctx.restore();
-      }
-
-      // Scanning Reticle Overlay on Right Eye when in 'scan' mode
-      if (!isLeft && currentEmotion === 'scan') {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(tick * 0.04);
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([6, 4]);
-        ctx.beginPath();
-        ctx.arc(0, 0, w * 0.62, 0, Math.PI * 2);
-        ctx.stroke();
         ctx.restore();
       }
     }
@@ -893,113 +887,106 @@
     function drawFaceArena(accent) {
       const parallaxMult = parseInt(document.getElementById('parallaxSlider').value, 10) / 100;
 
-      // Arena Background
-      ctx.fillStyle = '#070a10';
-      ctx.fillRect(0, 26, 320, 180);
+      // Pure Pitch Black OLED Arena Background
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 30, 320, 174);
 
-      // Layer 0: Deep Parallax Visor Cavity & Perspective Grid
-      if (document.getElementById('chkVisor').checked) {
-        const vx = 160 - face.gazeX * 7 * parallaxMult;
-        const vy = 114 - face.gazeY * 5 * parallaxMult;
+      // Mecha Cheek / Temple Armor Rails on Left & Right
+      ctx.strokeStyle = '#ff7300';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(14, 46); ctx.lineTo(38, 46);
+      ctx.moveTo(14, 46); ctx.lineTo(8, 64); ctx.lineTo(8, 166); ctx.lineTo(22, 188); ctx.lineTo(42, 188);
+      ctx.moveTo(282, 46); ctx.lineTo(306, 46);
+      ctx.moveTo(306, 46); ctx.lineTo(312, 64); ctx.lineTo(312, 166); ctx.lineTo(298, 188); ctx.lineTo(278, 188);
+      ctx.stroke();
 
-        // Subtle dark visor frame
-        ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth = 1.5;
+      for (let vy = 76; vy <= 156; vy += 16) {
+        ctx.fillStyle = '#662d00';
+        ctx.fillRect(14, vy, 12, 4);
+        ctx.fillRect(294, vy, 12, 4);
+      }
+
+      // Forehead Dataholics Split-Wing Crest
+      const gx = face.gazeX * 12 * parallaxMult;
+      const gy = face.gazeY * 7 * parallaxMult;
+      const crestX = 160 + gx * 0.5;
+      const crestY = 62 + gy * 0.3;
+      ctx.fillStyle = '#ff7300';
+      ctx.beginPath();
+      ctx.moveTo(crestX - 14, crestY - 6); ctx.lineTo(crestX - 2, crestY - 9); ctx.lineTo(crestX - 2, crestY + 9); ctx.lineTo(crestX - 14, crestY + 6);
+      ctx.moveTo(crestX + 2, crestY - 9); ctx.lineTo(crestX + 14, crestY - 6); ctx.lineTo(crestX + 14, crestY + 6); ctx.lineTo(crestX + 2, crestY + 9);
+      ctx.fill();
+
+      // Left & Right Aggressive Mecha Optics
+      drawSingleEye(106, 106, true, accent, parallaxMult);
+      drawSingleEye(214, 106, false, accent, parallaxMult);
+
+      // Center Nasal Bridge Sensor
+      ctx.fillStyle = '#ff7300';
+      ctx.beginPath();
+      ctx.moveTo(157 + gx, 114 + gy);
+      ctx.lineTo(163 + gx, 114 + gy);
+      ctx.lineTo(160 + gx, 121 + gy);
+      ctx.closePath();
+      ctx.fill();
+
+      // Rock-Steady Tactical Mecha Jawplate & 7-Slit Reactor Grille (NO trembling wave!)
+      if (document.getElementById('chkMouth').checked) {
+        const jx = 160 + face.gazeX * 7 * parallaxMult;
+        const jy = 162 + face.gazeY * 4 * parallaxMult;
+
+        // Cheek Armor Chassis Lines (\_______/)
+        ctx.strokeStyle = '#ff7300';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(vx - 122, vy - 72, 244, 144, 28);
+        ctx.moveTo(jx - 78, jy - 14);
+        ctx.lineTo(jx - 45, jy + 12);
+        ctx.lineTo(jx + 45, jy + 12);
+        ctx.lineTo(jx + 78, jy - 14);
         ctx.stroke();
 
-        // Corner depth brackets
-        ctx.strokeStyle = accent + '66';
-        ctx.lineWidth = 2;
-        const corners = [
-          [vx - 114, vy - 64, 1, 1],
-          [vx + 114, vy - 64, -1, 1],
-          [vx - 114, vy + 64, 1, -1],
-          [vx + 114, vy + 64, -1, -1]
-        ];
-        corners.forEach(([cx, cy, dx, dy]) => {
+        if (currentEmotion === 'happy') {
+          // SOBERBIO: Sharp cocky asymmetric Mecha Smirk
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 3;
           ctx.beginPath();
-          ctx.moveTo(cx, cy + dy * 10);
-          ctx.lineTo(cx, cy);
-          ctx.lineTo(cx + dx * 12, cy);
-          ctx.stroke();
-        });
-      }
-
-      // Side Telemetry Gauges (CPU & RAM bars integrated into the visor sides)
-      if (document.getElementById('chkHudRings').checked) {
-        // Left Gauge: CPU
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(12, 62, 6, 96);
-        const cpuH = Math.round((cpuLoad / 100) * 96);
-        ctx.fillStyle = cpuLoad > 75 ? '#f43f5e' : accent;
-        ctx.fillRect(12, 62 + (96 - cpuH), 6, cpuH);
-        ctx.fillStyle = '#64748b';
-        ctx.font = 'bold 8px monospace';
-        ctx.fillText('CPU', 8, 56);
-        ctx.fillText(`${cpuLoad}%`, 6, 169);
-
-        // Right Gauge: RAM
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(302, 62, 6, 96);
-        const ramH = Math.round((ramLoad / 100) * 96);
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillRect(302, 62 + (96 - ramH), 6, ramH);
-        ctx.fillStyle = '#64748b';
-        ctx.fillText('RAM', 296, 56);
-        ctx.fillText(`${ramLoad}%`, 296, 169);
-      }
-
-      // Layer 2: Left & Right Expressive Eyes
-      drawSingleEye(112, 108, true, accent, parallaxMult);
-      drawSingleEye(208, 108, false, accent, parallaxMult);
-
-      // Layer 3: Holographic Vocal Waveform / Expressive Mouth
-      if (document.getElementById('chkMouth').checked) {
-        const mx = 160 + face.gazeX * 10 * parallaxMult;
-        const my = 164 + face.gazeY * 6 * parallaxMult + Math.sin(tick * 0.05) * 1.5;
-
-        ctx.save();
-        ctx.strokeStyle = accent;
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-
-        if (currentEmotion === 'happy' || currentEmotion === 'victory') {
-          // Expressive glowing smile arc
-          ctx.arc(mx, my - 4, 16, 0.15 * Math.PI, 0.85 * Math.PI);
+          ctx.moveTo(jx - 30, jy + 2);
+          ctx.lineTo(jx + 6, jy + 2);
+          ctx.lineTo(jx + 32, jy - 9);
           ctx.stroke();
         } else if (currentEmotion === 'alarm') {
-          // Sawtooth modulator wave
-          for (let i = -22; i <= 22; i += 4) {
-            const wy = my + Math.sin(i * 0.6 + tick * 0.5) * 5;
-            if (i === -22) ctx.moveTo(mx + i, wy);
-            else ctx.lineTo(mx + i, wy);
-          }
+          // COMBATE: Interlocking Crimson Mecha Fangs
+          ctx.fillStyle = '#200005';
+          ctx.strokeStyle = '#f43f5e';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.roundRect(jx - 38, jy - 7, 76, 14, 3);
+          ctx.fill();
           ctx.stroke();
+          ctx.fillStyle = '#f43f5e';
+          for (let fx = -30; fx <= 24; fx += 12) {
+            ctx.beginPath();
+            ctx.moveTo(jx + fx, jy - 6);
+            ctx.lineTo(jx + fx + 8, jy - 6);
+            ctx.lineTo(jx + fx + 4, jy + 5);
+            ctx.closePath();
+            ctx.fill();
+          }
         } else {
-          // Subtle AI voice synthesizer line
-          const amp = 1.5 + voiceAmplitude * 8;
-          for (let i = -20; i <= 20; i += 2) {
-            const env = 1 - Math.abs(i) / 20;
-            const wy = my + Math.sin(i * 0.45 + tick * 0.25) * amp * env;
-            if (i === -20) ctx.moveTo(mx + i, wy);
-            else ctx.lineTo(mx + i, wy);
-          }
+          // SOBERANO (IDLE): Rock-steady 7-slit Armored Reactor Vents
+          ctx.fillStyle = '#080d14';
+          ctx.strokeStyle = '#293548';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.roundRect(jx - 38, jy - 6, 76, 12, 3);
+          ctx.fill();
           ctx.stroke();
+          for (let i = -3; i <= 3; i++) {
+            ctx.fillStyle = Math.abs(i) <= 1 ? '#ff7300' : accent;
+            ctx.fillRect(jx + i * 9 - 2, jy - 3, 5, 6);
+          }
         }
-        ctx.restore();
-      }
-
-      // Floating Zzz particles when sleeping
-      if (currentEmotion === 'sleep') {
-        ctx.fillStyle = '#818cf8';
-        ctx.font = 'bold 12px monospace';
-        const zy = 80 - ((tick * 0.6) % 35);
-        const zx = 245 + Math.sin(tick * 0.08) * 6;
-        ctx.fillText('Z', zx, zy);
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText('z', zx + 10, zy + 10);
       }
     }
 

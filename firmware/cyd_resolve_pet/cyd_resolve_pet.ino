@@ -241,7 +241,6 @@ void setup() {
   pinMode(RGB_LED_B, OUTPUT);
   setRgbLed(0, 0, 0);
 
-  soundFx.begin();
   pinMode(LDR_PIN, INPUT);
   pinMode(BOOT_BTN_PIN, INPUT_PULLUP);
 
@@ -249,6 +248,7 @@ void setup() {
   gfx.setRotation(1); // 320x240 Landscape
   gfx.setBrightness(245);
 
+  soundFx.begin();
   petRenderer.begin();
 
   siliconMac = HardwareAuth::getSiliconMac();
@@ -481,6 +481,7 @@ void loop() {
         soundFx.playTap();
         return;
       }
+      soundFx.playTap();
     }
 
     bool wfOnline = (WiFi.status() == WL_CONNECTED);
