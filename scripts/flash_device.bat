@@ -1,7 +1,9 @@
 @echo off
+cd /d "%~dp0.."
 title DigiVice Firmware Flasher (Cyber-Face)
 echo =====================================================================
 echo   ⚡ DigiVice Firmware Flasher -- Cyber-Face 2.5D (ESP32 CYD)
+echo   Ruta activa: %CD%
 echo =====================================================================
 echo.
 
