@@ -30,7 +30,7 @@ public:
     char nonce[17];
     uint32_t r1 = esp_random();
     uint32_t r2 = esp_random();
-    snprintf(nonce, sizeof(nonce), "%08x%08x", r1, r2);
+    snprintf(nonce, sizeof(nonce), "%08x%08x", (unsigned int)r1, (unsigned int)r2);
     return String(nonce);
   }
 

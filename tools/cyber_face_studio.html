@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigiVice Cyber-Face & Expressive Eyes Studio (320x240 CYD)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-4">
+  <div class="max-w-6xl mx-auto bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl p-5 shadow-xl">
+    
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-[var(--border)]">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <span id="liveDot" class="inline-block w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+          <h1 class="text-lg font-bold tracking-wide text-[var(--foreground)]">
+            👁️ DigiVice Cyber-Face Dashboard // Rostro Expresivo 2.5D
+          </h1>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-1">
+          Reutiliza el HUD táctil, sonido, conexión a ServiceDesk y modo Gafete del proyecto con un motor de ojos expresivos y profundidad parallax.
+        </p>
+      </div>
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-[var(--muted-foreground)]">Underglow LED:</span>
+        <span id="underglowBadge" class="px-2.5 py-1 rounded-md font-mono font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+          CYAN (ONLINE)
+        </span>
+        <button id="btnAudioToggle" class="px-3 py-1 rounded-md bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] font-medium hover:opacity-90 transition cursor-pointer">
+          🔊 Audio: ON
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Studio Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Left Column: Physical 320x240 CYD Hardware Screen Simulator (6 cols) -->
+      <div class="lg:col-span-6 flex flex-col items-center">
+        <div id="cydBezel" class="relative p-4 rounded-2xl border-4 border-neutral-700 bg-neutral-900 shadow-2xl transition-shadow duration-300" style="box-shadow: 0 18px 45px rgba(0,0,0,0.75), 0 0 38px rgba(56, 189, 248, 0.28);">
+          
+          <!-- Bezel Top Bar -->
+          <div class="flex justify-between items-center mb-2 px-1 text-xs font-mono text-neutral-400">
+            <span>ESP32-2432S028 (320×240 TFT)</span>
+            <span id="screenStateLabel" class="text-cyan-400 font-semibold">MODE: CYBER-FACE</span>
+          </div>
+
+          <!-- 320x240 Native Canvas (Scaled 1.5x to 480x360 for crisp desktop interaction) -->
+          <div class="relative rounded-lg overflow-hidden border-2 border-neutral-800 bg-black shadow-inner">
+            <canvas id="tftCanvas" width="320" height="240" class="block cursor-pointer" style="width: 480px; height: 360px; image-rendering: pixelated;"></canvas>
+            <!-- Subtle CRT Scanline Overlay -->
+            <div id="scanlineOverlay" class="pointer-events-none absolute inset-0 opacity-35" style="background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.35) 50%); background-size: 100% 4px;"></div>
+          </div>
+
+          <!-- Bezel Bottom Hints -->
+          <div class="flex flex-wrap justify-between items-center mt-2.5 px-1 text-xs text-neutral-400 gap-2">
+            <span>👆 Mueve el mouse para que te siga con la mirada • Haz clic para interactuar</span>
+            <button id="btnBootHw" class="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-amber-300 border border-amber-500/40 font-mono text-xs cursor-pointer">
+              🔘 Botón Trasero BOOT (Gafete)
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Screen Navigation Bar (Reusing existing project screens) -->
+        <div class="w-full max-w-[512px] mt-4 grid grid-cols-3 gap-2 text-xs">
+          <button onclick="setScreenMode('face')" class="px-3 py-2 rounded-lg border border-cyan-500/50 bg-cyan-500/10 text-cyan-300 font-semibold hover:bg-cyan-500/20 transition cursor-pointer">
+            👁️ Rostro & Dashboard
+          </button>
+          <button onclick="setScreenMode('tickets')" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-semibold hover:border-cyan-400 transition cursor-pointer">
+            📋 Lista de Tickets (4)
+          </button>
+          <button onclick="setScreenMode('badge')" class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] font-semibold hover:border-amber-400 transition cursor-pointer">
+            🪪 Modo Gafete Ejecutivo
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Expression, Depth & Dashboard Controls (6 cols) -->
+      <div class="lg:col-span-6 flex flex-col gap-4">
+
+        <!-- 1. Expressions & Emotional Reactions -->
+        <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2.5">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-cyan-400">
+              🎭 Expresiones y Reacciones (Conectadas a Eventos)
+            </h2>
+            <span id="currentEmotionLabel" class="text-xs font-mono text-[var(--muted-foreground)]">ESTADO: CURIOUS_IDLE</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <button onclick="triggerEmotion('idle')" class="px-2.5 py-2 rounded-lg border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-medium hover:bg-cyan-500/20 transition cursor-pointer text-left">
+              <div class="font-bold">👀 Atento / Vivo</div>
+              <div class="text-[var(--muted-foreground)] text-xs">Parpadeo + Mirada</div>
+            </button>
+            <button onclick="triggerEmotion('alarm')" class="px-2.5 py-2 rounded-lg border border-rose-500/50 bg-rose-500/15 text-rose-300 font-medium hover:bg-rose-500/25 transition cursor-pointer text-left">
+              <div class="font-bold">🚨 Alerta Ticket</div>
+              <div class="text-[var(--muted-foreground)] text-xs">Furia + Radar</div>
+            </button>
+            <button onclick="triggerEmotion('happy')" class="px-2.5 py-2 rounded-lg border border-amber-500/50 bg-amber-500/15 text-amber-300 font-medium hover:bg-amber-500/25 transition cursor-pointer text-left">
+              <div class="font-bold">😄 Feliz / Risa</div>
+              <div class="text-[var(--muted-foreground)] text-xs">Arcos ^ ^ + Voz</div>
+            </button>
+            <button onclick="triggerEmotion('victory')" class="px-2.5 py-2 rounded-lg border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 font-medium hover:bg-emerald-500/25 transition cursor-pointer text-left">
+              <div class="font-bold">⚡ Ticket Resuelto</div>
+              <div class="text-[var(--muted-foreground)] text-xs">Pulso + Brillo</div>
+            </button>
+            <button onclick="triggerEmotion('scan')" class="px-2.5 py-2 rounded-lg border border-purple-500/50 bg-purple-500/15 text-purple-300 font-medium hover:bg-purple-500/25 transition cursor-pointer text-left">
+              <div class="font-bold">🧐 Escaneando</div>
+              <div class="text-[var(--muted-foreground)] text-xs">Ceja + Retícula</div>
+            </button>
+            <button onclick="triggerEmotion('skeptic')" class="px-2.5 py-2 rounded-lg border border-orange-500/50 bg-orange-500/15 text-orange-300 font-medium hover:bg-orange-500/25 transition cursor-pointer text-left">
+              <div class="font-bold">🤨 Sospecha</div>
+              <div class="text-[var(--muted-foreground)] text-xs">Ojo asimétrico</div>
+            </button>
+            <button onclick="triggerEmotion('sleep')" class="px-2.5 py-2 rounded-lg border border-indigo-500/50 bg-indigo-500/15 text-indigo-300 font-medium hover:bg-indigo-500/25 transition cursor-pointer text-left">
+              <div class="font-bold">😴 Dormido / Zzz</div>
+              <div class="text-[var(--muted-foreground)] text-xs">Párpados pesados</div>
+            </button>
+            <button onclick="triggerEmotion('glitch')" class="px-2.5 py-2 rounded-lg border border-pink-500/50 bg-pink-500/15 text-pink-300 font-medium hover:bg-pink-500/25 transition cursor-pointer text-left">
+              <div class="font-bold">💥 Toque / Susto</div>
+              <div class="text-[var(--muted-foreground)] text-xs">Glitch + Dilatación</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Eye Geometry & Depth Elements Customizer -->
+        <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">
+            🛠️ Diseño del Rostro y Capas de Profundidad (2.5D)
+          </h2>
+
+          <!-- Eye Shape Selector -->
+          <div class="mb-3">
+            <label class="block text-xs text-[var(--muted-foreground)] mb-1.5">Geometría de los Ojos:</label>
+            <div class="grid grid-cols-3 gap-2 text-xs">
+              <button id="styleCozmo" onclick="setEyeStyle('cozmo')" class="px-2.5 py-1.5 rounded-lg border border-cyan-400 bg-cyan-500/20 text-cyan-200 font-semibold cursor-pointer">
+                🤖 Cyber-Visor (Cozmo/EVE)
+              </button>
+              <button id="styleOptic" onclick="setEyeStyle('optic')" class="px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:border-cyan-400 cursor-pointer">
+                🔮 Esfera 3D (Pupila + Iris)
+              </button>
+              <button id="styleMecha" onclick="setEyeStyle('mecha')" class="px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:border-cyan-400 cursor-pointer">
+                ⚡ Óptica Angular (Mecha)
+              </button>
+            </div>
+          </div>
+
+          <!-- Depth Layer Checkboxes -->
+          <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-[var(--border)] text-xs">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="chkBrows" checked class="accent-cyan-400 cursor-pointer">
+              <span>Cejas Flotantes Expresivas</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="chkPupils" checked class="accent-cyan-400 cursor-pointer">
+              <span>Pupilas + Reflejos 3D (Catchlight)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="chkMouth" checked class="accent-cyan-400 cursor-pointer">
+              <span>Onda de Voz / Boca Holográfica</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="chkVisor" checked class="accent-cyan-400 cursor-pointer">
+              <span>Casco / Visor con Parallax 3D</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="chkHudRings" checked class="accent-cyan-400 cursor-pointer">
+              <span> Telemetría Lateral (CPU / RAM)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="chkMouseTrack" checked class="accent-emerald-400 cursor-pointer">
+              <span>Seguir Cursor (o Automático)</span>
+            </label>
+          </div>
+
+          <!-- Color Theme & Eye Size -->
+          <div class="grid grid-cols-2 gap-4 mt-3 pt-2.5 border-t border-[var(--border)] text-xs">
+            <div>
+              <span class="block text-[var(--muted-foreground)] mb-1.5">Color Principal del Rostro:</span>
+              <div class="flex gap-2">
+                <button onclick="setFaceColor('#38bdf8', 'CYAN')" class="w-6 h-6 rounded-full bg-sky-400 border-2 border-white cursor-pointer" title="Cyber Cyan"></button>
+                <button onclick="setFaceColor('#2be86b', 'GREEN')" class="w-6 h-6 rounded-full bg-emerald-400 border border-neutral-600 cursor-pointer" title="Matrix Green"></button>
+                <button onclick="setFaceColor('#f59e0b', 'AMBER')" class="w-6 h-6 rounded-full bg-amber-400 border border-neutral-600 cursor-pointer" title="Solar Amber"></button>
+                <button onclick="setFaceColor('#a855f7', 'VIOLET')" class="w-6 h-6 rounded-full bg-purple-500 border border-neutral-600 cursor-pointer" title="Plasma Violet"></button>
+                <button onclick="setFaceColor('#f43f5e', 'CRIMSON')" class="w-6 h-6 rounded-full bg-rose-500 border border-neutral-600 cursor-pointer" title="Combat Crimson"></button>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-[var(--muted-foreground)]">Profundidad Parallax 3D:</span>
+                <span id="parallaxVal" class="font-mono text-cyan-300">100%</span>
+              </div>
+              <input type="range" id="parallaxSlider" min="20" max="180" value="100" class="w-full accent-cyan-400 cursor-pointer">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Live ServiceDesk & Server Metrics Simulator -->
+        <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2.5">
+            📡 Simulador de Eventos en Vivo (ServiceDesk + Servidor)
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs mb-3">
+            <div>
+              <label class="block text-[var(--muted-foreground)] mb-1">Ticket Reciente:</label>
+              <input type="text" id="inpTicketTitle" value="TKT-381: Latencia en Nodo K-2SO" class="w-full px-2.5 py-1.5 rounded bg-neutral-900 border border-neutral-700 text-white font-mono text-xs">
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-[var(--muted-foreground)]">Carga CPU Servidor:</span>
+                <span id="lblCpu" class="font-mono text-cyan-300">24%</span>
+              </div>
+              <input type="range" id="sldCpu" min="5" max="99" value="24" class="w-full accent-amber-400 cursor-pointer">
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <button onclick="simNewTicket()" class="px-2.5 py-2 rounded-lg bg-rose-500/20 border border-rose-500/50 text-rose-300 font-semibold hover:bg-rose-500/30 transition cursor-pointer">
+              🔥 1. Nuevo Ticket
+            </button>
+            <button onclick="simCommentTicket()" class="px-2.5 py-2 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-300 font-semibold hover:bg-amber-500/30 transition cursor-pointer">
+              💬 2. Comentario
+            </button>
+            <button onclick="simResolveTicket()" class="px-2.5 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-semibold hover:bg-emerald-500/30 transition cursor-pointer">
+              ✅ 3. Resolver Ticket
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. Web Audio Synthesizer (Compatible with GPIO 26 on ESP32 CYD)
+    // =========================================================================
+    let audioCtx = null;
+    let audioEnabled = true;
+    let voiceAmplitude = 0;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, durationMs, type = 'sine', delayMs = 0) {
+      setTimeout(() => {
+        voiceAmplitude = 1.0;
+        setTimeout(() => { voiceAmplitude = Math.max(0, voiceAmplitude - 0.5); }, durationMs);
+        if (!audioEnabled) return;
+        initAudio();
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.10, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (durationMs / 1000));
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + (durationMs / 1000));
+      }, delayMs);
+    }
+
+    function sfxChirpCurious() {
+      playTone(580, 55, 'sine', 0);
+      playTone(880, 75, 'triangle', 60);
+      playTone(1180, 90, 'sine', 135);
+    }
+
+    function sfxAlertKlaxon() {
+      for (let r = 0; r < 2; r++) {
+        playTone(620, 110, 'sawtooth', r * 240);
+        playTone(940, 110, 'sawtooth', r * 240 + 115);
+      }
+    }
+
+    function sfxHappyLaugh() {
+      const notes = [660, 880, 1046, 1318, 1046, 1318, 1567];
+      notes.forEach((n, i) => playTone(n, 55, 'triangle', i * 65));
+    }
+
+    function sfxVictoryResolve() {
+      const notes = [523, 659, 784, 1046, 1318, 1567];
+      notes.forEach((n, i) => playTone(n, i === 5 ? 220 : 65, 'triangle', i * 70));
+    }
+
+    function sfxGlitchPoke() {
+      playTone(220, 45, 'sawtooth', 0);
+      playTone(1400, 35, 'square', 45);
+      playTone(310, 60, 'sawtooth', 85);
+    }
+
+    document.getElementById('btnAudioToggle').addEventListener('click', () => {
+      audioEnabled = !audioEnabled;
+      document.getElementById('btnAudioToggle').textContent = audioEnabled ? '🔊 Audio: ON' : '🔇 Audio: OFF';
+    });
+
+    // =========================================================================
+    // 2. State & Physics Model for the Expressive 2.5D Face
+    // =========================================================================
+    const canvas = document.getElementById('tftCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let screenMode = 'face'; // 'face', 'tickets', 'detail', 'badge'
+    let selectedTicketIdx = 0;
+
+    let eyeStyle = 'cozmo'; // 'cozmo', 'optic', 'mecha'
+    let baseColor = '#38bdf8';
+    let baseColorName = 'CYAN';
+    let currentEmotion = 'idle';
+    let emotionTimer = 0;
+    let tick = 0;
+
+    // Smooth interpolated eye physics (Spring / Lerp)
+    const face = {
+      gazeX: 0,         // Current X offset (-1 to +1)
+      gazeY: 0,         // Current Y offset (-1 to +1)
+      targetGazeX: 0,
+      targetGazeY: 0,
+      browX: 0,         // Delayed parallax for eyebrows
+      browY: 0,
+      blink: 0,         // 0 = open, 1 = closed
+      nextBlinkTick: 90,
+      upperLidL: 0,     // 0 to 1 closure
+      upperLidR: 0,
+      lowerLidL: 0,
+      lowerLidR: 0,
+      browAngleL: 0,    // radians
+      browAngleR: 0,
+      browLiftL: 0,
+      browLiftR: 0,
+      eyeScaleL: 1,
+      eyeScaleR: 1,
+      pupilScale: 1,
+      happyArc: 0,      // 0 to 1 happy crescent curve
+      glitchOffset: 0
+    };
+
+    // Telemetry & ServiceDesk State (Reusing existing project data schema)
+    let activeTickets = 2;
+    let resolvedToday = 15;
+    let cpuLoad = 24;
+    let ramLoad = 48;
+    let latestBannerText = "TKT-381: Latencia en Nodo K-2SO [OPEN]";
+
+    const tickets = [
+      { id: 381, title: "Latencia en Nodo K-2SO", status: "OPEN", priority: "HIGH", req: "Alonso Ruiz", desc: "Incremento de latencia en inferencia local del agente durante validación de Gate 2." },
+      { id: 380, title: "Sync Webhook Portal Cautivo", status: "UPDATED", priority: "MEDIUM", req: "Luis Morales", desc: "Ajuste de persistencia NVS para credenciales Wi-Fi en placas ESP32-2432S028." },
+      { id: 379, title: "Firma HMAC-SHA256 eFuse", status: "RESOLVED", priority: "CRITICAL", req: "SecOps", desc: "Validación de token criptográfico por hardware completada sin errores." },
+      { id: 378, title: "Calibración Brillo PWM ST7789", status: "RESOLVED", priority: "LOW", req: "Hardware Lab", desc: "Curva de brillo ajustada con sensor LDR en pin GPIO 34." }
+    ];
+
+    // =========================================================================
+    // 3. Emotion & Event Triggers
+    // =========================================================================
+    function setFaceColor(hex, name) {
+      baseColor = hex;
+      baseColorName = name;
+      updateUnderglowUI(hex, name);
+    }
+
+    function updateUnderglowUI(hex, label) {
+      const badge = document.getElementById('underglowBadge');
+      badge.textContent = label;
+      badge.style.borderColor = hex;
+      badge.style.color = hex;
+      document.getElementById('cydBezel').style.boxShadow = `0 18px 45px rgba(0,0,0,0.75), 0 0 42px ${hex}44`;
+    }
+
+    function triggerEmotion(emo) {
+      currentEmotion = emo;
+      emotionTimer = 220; // ~3.6 seconds before returning to autonomous idle (except sleep)
+      document.getElementById('currentEmotionLabel').textContent = `ESTADO: ${emo.toUpperCase()}`;
+
+      if (emo === 'idle') {
+        sfxChirpCurious();
+        updateUnderglowUI(baseColor, `${baseColorName} (ONLINE)`);
+      } else if (emo === 'alarm') {
+        sfxAlertKlaxon();
+        updateUnderglowUI('#f43f5e', 'CRIMSON (ALERTA TICKET)');
+      } else if (emo === 'happy') {
+        sfxHappyLaugh();
+        updateUnderglowUI('#f59e0b', 'AMBER (ACTUALIZACIÓN)');
+      } else if (emo === 'victory') {
+        sfxVictoryResolve();
+        updateUnderglowUI('#2be86b', 'EMERALD (TICKET RESUELTO)');
+      } else if (emo === 'scan') {
+        sfxChirpCurious();
+        updateUnderglowUI('#a855f7', 'VIOLET (ESCANEANDO)');
+      } else if (emo === 'skeptic') {
+        playTone(420, 90, 'triangle', 0);
+        updateUnderglowUI('#f97316', 'ORANGE (SOSPECHA)');
+      } else if (emo === 'sleep') {
+        emotionTimer = 999999;
+        updateUnderglowUI('#6366f1', 'INDIGO (SLEEP MODE)');
+      } else if (emo === 'glitch') {
+        sfxGlitchPoke();
+        face.glitchOffset = 12;
+        updateUnderglowUI('#ec4899', 'PINK (INTERACCIÓN)');
+      }
+    }
+
+    function setEyeStyle(style) {
+      eyeStyle = style;
+      ['cozmo', 'optic', 'mecha'].forEach(s => {
+        const btn = document.getElementById('style' + s.charAt(0).toUpperCase() + s.slice(1));
+        if (s === style) {
+          btn.className = "px-2.5 py-1.5 rounded-lg border border-cyan-400 bg-cyan-500/20 text-cyan-200 font-semibold cursor-pointer";
+        } else {
+          btn.className = "px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:border-cyan-400 cursor-pointer";
+        }
+      });
+      sfxChirpCurious();
+    }
+
+    function setScreenMode(mode) {
+      screenMode = mode;
+      document.getElementById('screenStateLabel').textContent = `MODE: ${mode.toUpperCase()}`;
+      playTone(780, 40, 'sine', 0);
+    }
+
+    document.getElementById('btnBootHw').addEventListener('click', () => {
+      setScreenMode(screenMode === 'badge' ? 'face' : 'badge');
+    });
+
+    // Live ServiceDesk Simulation Buttons
+    function simNewTicket() {
+      const title = document.getElementById('inpTicketTitle').value || "Nuevo Incidente";
+      activeTickets++;
+      latestBannerText = `ALERTA: ${title} [OPEN]`;
+      tickets.unshift({ id: 380 + activeTickets, title: title.replace(/^TKT-\d+:\s*/, ''), status: "OPEN", priority: "CRITICAL", req: "ServiceDesk", desc: "Incidente reportado en tiempo real hacia el DigiVice." });
+      if (tickets.length > 4) tickets.pop();
+      setScreenMode('face');
+      triggerEmotion('alarm');
+    }
+
+    function simCommentTicket() {
+      const title = document.getElementById('inpTicketTitle').value || "Ticket Actualizado";
+      latestBannerText = `COMENTARIO EN: ${title}`;
+      setScreenMode('face');
+      triggerEmotion('happy');
+    }
+
+    function simResolveTicket() {
+      if (activeTickets > 0) activeTickets--;
+      resolvedToday++;
+      const title = document.getElementById('inpTicketTitle').value || "Ticket";
+      latestBannerText = `RESUELTO: ${title} [OK]`;
+      if (tickets[0]) tickets[0].status = "RESOLVED";
+      setScreenMode('face');
+      triggerEmotion('victory');
+    }
+
+    document.getElementById('sldCpu').addEventListener('input', (e) => {
+      cpuLoad = parseInt(e.target.value, 10);
+      document.getElementById('lblCpu').textContent = `${cpuLoad}%`;
+      if (cpuLoad > 80 && currentEmotion === 'idle') {
+        triggerEmotion('alarm');
+      }
+    });
+
+    document.getElementById('parallaxSlider').addEventListener('input', (e) => {
+      document.getElementById('parallaxVal').textContent = `${e.target.value}%`;
+    });
+
+    // =========================================================================
+    // 4. Mouse Tracking & Touch Zones (320x240 Coordinate Space)
+    // =========================================================================
+    let mouseInside = false;
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 320;
+      const y = ((e.clientY - rect.top) / rect.height) * 240;
+      mouseInside = true;
+      if (document.getElementById('chkMouseTrack').checked && currentEmotion !== 'sleep') {
+        face.targetGazeX = Math.max(-1, Math.min(1, (x - 160) / 110));
+        face.targetGazeY = Math.max(-1, Math.min(1, (y - 115) / 80));
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      mouseInside = false;
+    });
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 320;
+      const y = ((e.clientY - rect.top) / rect.height) * 240;
+
+      // Navigation logic matching ESP32 CYD touchscreen
+      if (screenMode === 'badge') {
+        setScreenMode('face');
+        return;
+      }
+      if (screenMode === 'tickets') {
+        if (y < 28 && x < 90) {
+          setScreenMode('face');
+          return;
+        }
+        const row = Math.floor((y - 34) / 48);
+        if (row >= 0 && row < tickets.length) {
+          selectedTicketIdx = row;
+          setScreenMode('detail');
+        }
+        return;
+      }
+      if (screenMode === 'detail') {
+        if (y > 200) {
+          if (x < 160) setScreenMode('tickets');
+          else setScreenMode('face');
+        }
+        return;
+      }
+
+      // In 'face' mode:
+      // Top-left pill -> Badge Mode
+      if (y <= 26 && x <= 118) {
+        setScreenMode('badge');
+        return;
+      }
+      // Top-right metrics or Bottom Ticker -> Ticket List
+      if (y <= 26 && x > 180 || y >= 204) {
+        setScreenMode('tickets');
+        return;
+      }
+      // Center Arena Tap -> Wake up if sleeping, or trigger Glitch/Poke reaction
+      if (currentEmotion === 'sleep') {
+        triggerEmotion('idle');
+      } else {
+        triggerEmotion('glitch');
+      }
+    });
+
+    // =========================================================================
+    // 5. Physics Update Loop (60 FPS Smooth Interpolation)
+    // =========================================================================
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function updateFacePhysics() {
+      tick++;
+      if (voiceAmplitude > 0.02) voiceAmplitude *= 0.90;
+      else voiceAmplitude = 0;
+
+      if (face.glitchOffset > 0.2) face.glitchOffset *= 0.82;
+      else face.glitchOffset = 0;
+
+      if (emotionTimer > 0) {
+        emotionTimer--;
+        if (emotionTimer === 0 && currentEmotion !== 'idle') {
+          currentEmotion = 'idle';
+          document.getElementById('currentEmotionLabel').textContent = 'ESTADO: CURIOUS_IDLE';
+          updateUnderglowUI(baseColor, `${baseColorName} (ONLINE)`);
+        }
+      }
+
+      // Autonomous Saccades (Realistic eye movement when not tracking mouse)
+      if (!mouseInside || !document.getElementById('chkMouseTrack').checked) {
+        if (currentEmotion === 'sleep') {
+          face.targetGazeX = 0;
+          face.targetGazeY = 0.35;
+        } else if (tick % 75 === 0) {
+          face.targetGazeX = (Math.random() * 1.6 - 0.8);
+          face.targetGazeY = (Math.random() * 1.1 - 0.55);
+        } else if (tick % 190 === 0) {
+          face.targetGazeX = 0;
+          face.targetGazeY = 0;
+        }
+      }
+
+      // Smooth gaze interpolation
+      face.gazeX = lerp(face.gazeX, face.targetGazeX, 0.18);
+      face.gazeY = lerp(face.gazeY, face.targetGazeY, 0.18);
+      // Secondary delayed motion for brows (creates depth & weight)
+      face.browX = lerp(face.browX, face.gazeX, 0.10);
+      face.browY = lerp(face.browY, face.gazeY, 0.10);
+
+      // Natural Blinking
+      if (tick >= face.nextBlinkTick && currentEmotion !== 'sleep') {
+        face.blink = 1.0;
+        face.nextBlinkTick = tick + 110 + Math.floor(Math.random() * 140);
+      }
+      face.blink = lerp(face.blink, 0, 0.28);
+
+      // Target expressions per emotion
+      let tUpperL = 0, tUpperR = 0, tLowerL = 0, tLowerR = 0;
+      let tBrowAngL = 0, tBrowAngR = 0, tBrowLiftL = 0, tBrowLiftR = 0;
+      let tScaleL = 1, tScaleR = 1, tPupil = 1, tHappy = 0;
+
+      if (currentEmotion === 'idle') {
+        tUpperL = 0.05; tUpperR = 0.05;
+        tBrowAngL = -0.04; tBrowAngR = 0.04;
+      } else if (currentEmotion === 'alarm') {
+        tUpperL = 0.28; tUpperR = 0.28;
+        tLowerL = 0.15; tLowerR = 0.15;
+        tBrowAngL = 0.38; tBrowAngR = -0.38; // Angry V-shape
+        tBrowLiftL = -6; tBrowLiftR = -6;
+        tPupil = 0.72; // Contracted sharp combat pupil
+      } else if (currentEmotion === 'happy') {
+        tHappy = 1.0;
+        tLowerL = 0.55; tLowerR = 0.55;
+        tBrowAngL = -0.22; tBrowAngR = 0.22;
+        tBrowLiftL = 6 + Math.sin(tick * 0.35) * 3;
+        tBrowLiftR = 6 + Math.sin(tick * 0.35) * 3;
+      } else if (currentEmotion === 'victory') {
+        tHappy = 0.75;
+        tScaleL = 1.12; tScaleR = 1.12;
+        tBrowLiftL = 8; tBrowLiftR = 8;
+        tPupil = 1.25;
+      } else if (currentEmotion === 'scan') {
+        tUpperL = 0.38; tLowerL = 0.25;
+        tScaleR = 1.15;
+        tBrowAngL = 0.18; tBrowAngR = -0.28;
+        tBrowLiftL = -4; tBrowLiftR = 7;
+        face.targetGazeX = Math.sin(tick * 0.08) * 0.75;
+      } else if (currentEmotion === 'skeptic') {
+        tUpperL = 0.52; tLowerL = 0.25; // Squinting left eye
+        tUpperR = 0.0;  tScaleR = 1.14; // Wide right eye
+        tBrowAngL = 0.25; tBrowAngR = -0.30;
+        tBrowLiftL = -6;  tBrowLiftR = 9;
+      } else if (currentEmotion === 'sleep') {
+        tUpperL = 0.88; tUpperR = 0.88;
+        tBrowAngL = -0.15; tBrowAngR = 0.15;
+        tBrowLiftL = -4; tBrowLiftR = -4;
+      } else if (currentEmotion === 'glitch') {
+        tScaleL = 1.22; tScaleR = 0.82;
+        tPupil = 0.65;
+        tBrowLiftL = 10; tBrowLiftR = -5;
+      }
+
+      face.upperLidL = lerp(face.upperLidL, Math.max(tUpperL, face.blink), 0.22);
+      face.upperLidR = lerp(face.upperLidR, Math.max(tUpperR, face.blink), 0.22);
+      face.lowerLidL = lerp(face.lowerLidL, tLowerL, 0.20);
+      face.lowerLidR = lerp(face.lowerLidR, tLowerR, 0.20);
+      face.browAngleL = lerp(face.browAngleL, tBrowAngL, 0.18);
+      face.browAngleR = lerp(face.browAngleR, tBrowAngR, 0.18);
+      face.browLiftL = lerp(face.browLiftL, tBrowLiftL, 0.18);
+      face.browLiftR = lerp(face.browLiftR, tBrowLiftR, 0.18);
+      face.eyeScaleL = lerp(face.eyeScaleL, tScaleL, 0.20);
+      face.eyeScaleR = lerp(face.eyeScaleR, tScaleR, 0.20);
+      face.pupilScale = lerp(face.pupilScale, tPupil, 0.20);
+      face.happyArc = lerp(face.happyArc, tHappy, 0.20);
+    }
+
+    // =========================================================================
+    // 6. Rendering Engine (320x240 Exact Pixel Viewport)
+    // =========================================================================
+    function getActiveColor() {
+      if (currentEmotion === 'alarm') return '#f43f5e';
+      if (currentEmotion === 'happy') return '#f59e0b';
+      if (currentEmotion === 'victory') return '#2be86b';
+      if (currentEmotion === 'scan') return '#a855f7';
+      if (currentEmotion === 'sleep') return '#818cf8';
+      return baseColor;
+    }
+
+    function drawTopHud(accent) {
+      ctx.fillStyle = '#0b0f17';
+      ctx.fillRect(0, 0, 320, 26);
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, 26);
+      ctx.lineTo(320, 26);
+      ctx.stroke();
+
+      // Left Pill: Executive Badge Trigger
+      ctx.fillStyle = '#161f30';
+      ctx.strokeStyle = accent;
+      ctx.beginPath();
+      ctx.roundRect(4, 3, 112, 19, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('🪪 ALONSO (CEO)', 11, 16);
+
+      // Right Metric Pills: ACT & SLAIN
+      ctx.fillStyle = activeTickets > 0 ? '#3b1219' : '#111827';
+      ctx.strokeStyle = activeTickets > 0 ? '#f43f5e' : '#334155';
+      ctx.beginPath();
+      ctx.roundRect(184, 3, 62, 19, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = activeTickets > 0 ? '#fda4af' : '#94a3b8';
+      ctx.fillText(`ACT: ${activeTickets}`, 194, 16);
+
+      ctx.fillStyle = '#0d2818';
+      ctx.strokeStyle = '#2be86b';
+      ctx.beginPath();
+      ctx.roundRect(252, 3, 64, 19, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#86efac';
+      ctx.fillText(`OK: ${resolvedToday}`, 262, 16);
+    }
+
+    function drawBottomTicker(accent) {
+      ctx.fillStyle = '#0b0f17';
+      ctx.fillRect(0, 206, 320, 34);
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, 206);
+      ctx.lineTo(320, 206);
+      ctx.stroke();
+
+      // Status indicator dot
+      ctx.fillStyle = accent;
+      ctx.beginPath();
+      ctx.arc(12, 223, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText(latestBannerText.substring(0, 34), 22, 226);
+
+      // Tap indicator
+      ctx.fillStyle = accent;
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('[DECK >]', 270, 226);
+    }
+
+    function drawSingleEye(cx, cy, isLeft, accent, parallaxMult) {
+      const w = 68;
+      const h = (eyeStyle === 'cozmo' ? 54 : (eyeStyle === 'optic' ? 58 : 44)) * (isLeft ? face.eyeScaleL : face.eyeScaleR);
+      const breathY = Math.sin(tick * 0.05) * 2.2;
+      const gx = face.gazeX * 16 * parallaxMult + (face.glitchOffset ? (Math.random() - 0.5) * face.glitchOffset : 0);
+      const gy = face.gazeY * 11 * parallaxMult + breathY;
+
+      const x = cx + gx;
+      const y = cy + gy;
+
+      ctx.save();
+
+      // Outer Eye Glow Halo
+      const grad = ctx.createRadialGradient(x, y, 6, x, y, 48);
+      grad.addColorStop(0, accent + '55');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, 48, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Clip path for Eye Shape
+      ctx.beginPath();
+      if (eyeStyle === 'cozmo') {
+        ctx.roundRect(x - w / 2, y - h / 2, w, h, 16);
+      } else if (eyeStyle === 'optic') {
+        ctx.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
+      } else {
+        // Angular Mecha Optic polygon
+        const hw = w / 2, hh = h / 2;
+        ctx.moveTo(x - hw + 10, y - hh);
+        ctx.lineTo(x + hw - 6, y - hh);
+        ctx.lineTo(x + hw, y - hh + 12);
+        ctx.lineTo(x + hw - 8, y + hh);
+        ctx.lineTo(x - hw + 6, y + hh);
+        ctx.lineTo(x - hw, y + hh - 12);
+        ctx.closePath();
+      }
+      ctx.clip();
+
+      // Base Glowing Eye Fill
+      ctx.fillStyle = accent;
+      ctx.fillRect(x - w / 2 - 2, y - h / 2 - 2, w + 4, h + 4);
+
+      // Scanline texture inside the eye (Cozmo / Cyber visor depth)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+      for (let sy = y - h / 2; sy < y + h / 2; sy += 3) {
+        ctx.fillRect(x - w / 2, sy, w, 1);
+      }
+
+      // Inner 3D Iris, Pupil & Catchlight Highlights (if enabled)
+      if (document.getElementById('chkPupils').checked) {
+        // Pupil moves with extra 1.35x parallax for spherical 3D depth!
+        const px = x + face.gazeX * 8 * parallaxMult;
+        const py = y + face.gazeY * 6 * parallaxMult;
+        const pRadius = 14 * face.pupilScale;
+
+        // Deep Iris Ring
+        ctx.fillStyle = '#060911';
+        ctx.beginPath();
+        ctx.arc(px, py, pRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Glowing Inner Core Ring
+        ctx.strokeStyle = '#ffffffaa';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px, py, pRadius * 0.55, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Primary 3D Specular Catchlight (Top-Left reflection)
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(px - pRadius * 0.42, py - pRadius * 0.42, 4.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Secondary Catchlight (Bottom-Right lens reflection)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(px + pRadius * 0.45, py + pRadius * 0.45, 2.0, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Even in pure Cozmo visor mode, add a subtle top-left corner shine for depth
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        ctx.beginPath();
+        ctx.roundRect(x - w / 2 + 7, y - h / 2 + 6, 14, 5, 2);
+        ctx.fill();
+      }
+
+      // Upper Eyelid Mask (with slant angle for emotion)
+      const upperClosure = isLeft ? face.upperLidL : face.upperLidR;
+      const slant = isLeft ? face.browAngleL : face.browAngleR;
+      if (upperClosure > 0.01 || Math.abs(slant) > 0.02) {
+        ctx.fillStyle = '#070a10';
+        ctx.beginPath();
+        const lidY = (y - h / 2) + upperClosure * h;
+        const slantOffset = Math.sin(slant) * (w * 0.55);
+        ctx.moveTo(x - w, y - h);
+        ctx.lineTo(x + w, y - h);
+        ctx.lineTo(x + w / 2 + 4, lidY + slantOffset);
+        ctx.lineTo(x - w / 2 - 4, lidY - slantOffset);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Lower Eyelid / Happy Crescent Mask
+      const lowerClosure = isLeft ? face.lowerLidL : face.lowerLidR;
+      if (lowerClosure > 0.01 || face.happyArc > 0.05) {
+        ctx.fillStyle = '#070a10';
+        ctx.beginPath();
+        const lidY = (y + h / 2) - lowerClosure * h;
+        if (face.happyArc > 0.1) {
+          // Curved happy cheek mask (^ ^)
+          ctx.arc(x, y + h * 0.55, w * 0.54, Math.PI, Math.PI * 2);
+          ctx.lineTo(x + w, y + h);
+          ctx.lineTo(x - w, y + h);
+          ctx.closePath();
+        } else {
+          ctx.rect(x - w / 2 - 2, lidY, w + 4, h);
+        }
+        ctx.fill();
+      }
+
+      ctx.restore();
+
+      // Floating Expressive Eyebrow Plate (Secondary Parallax Layer)
+      if (document.getElementById('chkBrows').checked) {
+        const bx = cx + face.browX * 19 * parallaxMult;
+        const by = cy - h / 2 - 11 - (isLeft ? face.browLiftL : face.browLiftR) + face.browY * 9 * parallaxMult + breathY;
+        const ang = isLeft ? face.browAngleL : face.browAngleR;
+
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(ang);
+        ctx.fillStyle = accent;
+        ctx.shadowColor = accent;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.roundRect(-w * 0.42, -3.5, w * 0.84, 6.5, 3);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Scanning Reticle Overlay on Right Eye when in 'scan' mode
+      if (!isLeft && currentEmotion === 'scan') {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(tick * 0.04);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.arc(0, 0, w * 0.62, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawFaceArena(accent) {
+      const parallaxMult = parseInt(document.getElementById('parallaxSlider').value, 10) / 100;
+
+      // Arena Background
+      ctx.fillStyle = '#070a10';
+      ctx.fillRect(0, 26, 320, 180);
+
+      // Layer 0: Deep Parallax Visor Cavity & Perspective Grid
+      if (document.getElementById('chkVisor').checked) {
+        const vx = 160 - face.gazeX * 7 * parallaxMult;
+        const vy = 114 - face.gazeY * 5 * parallaxMult;
+
+        // Subtle dark visor frame
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(vx - 122, vy - 72, 244, 144, 28);
+        ctx.stroke();
+
+        // Corner depth brackets
+        ctx.strokeStyle = accent + '66';
+        ctx.lineWidth = 2;
+        const corners = [
+          [vx - 114, vy - 64, 1, 1],
+          [vx + 114, vy - 64, -1, 1],
+          [vx - 114, vy + 64, 1, -1],
+          [vx + 114, vy + 64, -1, -1]
+        ];
+        corners.forEach(([cx, cy, dx, dy]) => {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy + dy * 10);
+          ctx.lineTo(cx, cy);
+          ctx.lineTo(cx + dx * 12, cy);
+          ctx.stroke();
+        });
+      }
+
+      // Side Telemetry Gauges (CPU & RAM bars integrated into the visor sides)
+      if (document.getElementById('chkHudRings').checked) {
+        // Left Gauge: CPU
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(12, 62, 6, 96);
+        const cpuH = Math.round((cpuLoad / 100) * 96);
+        ctx.fillStyle = cpuLoad > 75 ? '#f43f5e' : accent;
+        ctx.fillRect(12, 62 + (96 - cpuH), 6, cpuH);
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 8px monospace';
+        ctx.fillText('CPU', 8, 56);
+        ctx.fillText(`${cpuLoad}%`, 6, 169);
+
+        // Right Gauge: RAM
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(302, 62, 6, 96);
+        const ramH = Math.round((ramLoad / 100) * 96);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(302, 62 + (96 - ramH), 6, ramH);
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('RAM', 296, 56);
+        ctx.fillText(`${ramLoad}%`, 296, 169);
+      }
+
+      // Layer 2: Left & Right Expressive Eyes
+      drawSingleEye(112, 108, true, accent, parallaxMult);
+      drawSingleEye(208, 108, false, accent, parallaxMult);
+
+      // Layer 3: Holographic Vocal Waveform / Expressive Mouth
+      if (document.getElementById('chkMouth').checked) {
+        const mx = 160 + face.gazeX * 10 * parallaxMult;
+        const my = 164 + face.gazeY * 6 * parallaxMult + Math.sin(tick * 0.05) * 1.5;
+
+        ctx.save();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+
+        if (currentEmotion === 'happy' || currentEmotion === 'victory') {
+          // Expressive glowing smile arc
+          ctx.arc(mx, my - 4, 16, 0.15 * Math.PI, 0.85 * Math.PI);
+          ctx.stroke();
+        } else if (currentEmotion === 'alarm') {
+          // Sawtooth modulator wave
+          for (let i = -22; i <= 22; i += 4) {
+            const wy = my + Math.sin(i * 0.6 + tick * 0.5) * 5;
+            if (i === -22) ctx.moveTo(mx + i, wy);
+            else ctx.lineTo(mx + i, wy);
+          }
+          ctx.stroke();
+        } else {
+          // Subtle AI voice synthesizer line
+          const amp = 1.5 + voiceAmplitude * 8;
+          for (let i = -20; i <= 20; i += 2) {
+            const env = 1 - Math.abs(i) / 20;
+            const wy = my + Math.sin(i * 0.45 + tick * 0.25) * amp * env;
+            if (i === -20) ctx.moveTo(mx + i, wy);
+            else ctx.lineTo(mx + i, wy);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Floating Zzz particles when sleeping
+      if (currentEmotion === 'sleep') {
+        ctx.fillStyle = '#818cf8';
+        ctx.font = 'bold 12px monospace';
+        const zy = 80 - ((tick * 0.6) % 35);
+        const zx = 245 + Math.sin(tick * 0.08) * 6;
+        ctx.fillText('Z', zx, zy);
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('z', zx + 10, zy + 10);
+      }
+    }
+
+    // Reuse existing Ticket List Screen
+    function drawTicketListScreen(accent) {
+      ctx.fillStyle = '#070a10';
+      ctx.fillRect(0, 0, 320, 240);
+
+      // Header
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(0, 0, 320, 28);
+      ctx.fillStyle = accent;
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText('< VOLVER', 10, 18);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillText('SERVICEDESK LIVE INCIDENTS', 95, 18);
+
+      tickets.forEach((t, i) => {
+        const y = 34 + i * 48;
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.roundRect(8, y, 304, 42, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        // Status strip
+        const stColor = t.status === 'OPEN' ? '#f43f5e' : (t.status === 'UPDATED' ? '#f59e0b' : '#2be86b');
+        ctx.fillStyle = stColor;
+        ctx.fillRect(8, y, 5, 42);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(`#${t.id} ${t.title.substring(0, 26)}`, 20, y + 17);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '9px monospace';
+        ctx.fillText(`STATUS: ${t.status} | PRIO: ${t.priority} | POR: ${t.req}`, 20, y + 33);
+      });
+    }
+
+    // Reuse existing Ticket Detail Dossier Screen
+    function drawTicketDetailScreen(accent) {
+      const t = tickets[selectedTicketIdx] || tickets[0];
+      ctx.fillStyle = '#070a10';
+      ctx.fillRect(0, 0, 320, 240);
+
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(0, 0, 320, 28);
+      ctx.fillStyle = accent;
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText(`DOSSIER FORENSE // TICKET #${t.id}`, 12, 18);
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(t.title, 12, 52);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '10px monospace';
+      ctx.fillText(`Solicitante: ${t.req}  |  Prioridad: ${t.priority}`, 12, 72);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(10, 84, 300, 104, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '11px sans-serif';
+      const words = t.desc.split(' ');
+      let line = '', ly = 104;
+      words.forEach(w => {
+        if ((line + w).length > 42) {
+          ctx.fillText(line, 18, ly);
+          line = w + ' ';
+          ly += 16;
+        } else {
+          line += w + ' ';
+        }
+      });
+      if (line) ctx.fillText(line, 18, ly);
+
+      // Bottom buttons
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(10, 200, 142, 30, 5);
+      ctx.fill();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText('< LISTA TICKETS', 28, 219);
+
+      ctx.fillStyle = accent + '33';
+      ctx.strokeStyle = accent;
+      ctx.beginPath();
+      ctx.roundRect(168, 200, 142, 30, 5);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = accent;
+      ctx.fillText('VOLVER AL ROSTRO 👁️', 180, 219);
+    }
+
+    // Reuse Executive Badge Screen
+    function drawBadgeScreen(accent) {
+      ctx.fillStyle = '#060911';
+      ctx.fillRect(0, 0, 320, 240);
+
+      // Cyber border
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(8, 8, 304, 224);
+
+      // Dataholics header
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText('⚡ DATAHOLICS SOVEREIGN AI // VIP PASS', 24, 34);
+
+      // Mini animated eyes on the badge!
+      drawSingleEye(125, 86, true, accent, 0.35);
+      drawSingleEye(195, 86, false, accent, 0.35);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('ALONSO RUIZ', 82, 158);
+
+      ctx.fillStyle = accent;
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText('CHIEF EXECUTIVE OFFICER (CEO)', 56, 178);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '9px monospace';
+      ctx.fillText('SILICON eFUSE: 24:DC:C3:9A:45:88 • [TOCA PARA SALIR]', 24, 216);
+    }
+
+    function renderLoop() {
+      updateFacePhysics();
+      const accent = getActiveColor();
+
+      if (screenMode === 'face') {
+        drawTopHud(accent);
+        drawFaceArena(accent);
+        drawBottomTicker(accent);
+      } else if (screenMode === 'tickets') {
+        drawTicketListScreen(accent);
+      } else if (screenMode === 'detail') {
+        drawTicketDetailScreen(accent);
+      } else if (screenMode === 'badge') {
+        drawBadgeScreen(accent);
+      }
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    renderLoop();
+  </script>
+</body>
+</html>

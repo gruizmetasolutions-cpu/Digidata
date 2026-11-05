@@ -34,6 +34,15 @@ case "$cmd" in
     tools)
         ./scripts/serve_tools.sh
         ;;
+    build)
+        echo "🔨 Compilando firmware con PlatformIO..."
+        .venv/bin/pio run -d firmware/cyd_resolve_pet
+        cp -f firmware/cyd_resolve_pet/.pio/build/esp32-2432S028R/firmware.bin digivice_cyberface.bin
+        echo "✅ Firmware compilado con éxito en digivice_cyberface.bin"
+        ;;
+    flash)
+        ./scripts/flash_device.sh
+        ;;
     check)
         echo "🔍 Verificando integridad de módulos de servidor Python..."
         .venv/bin/python3 -c "import server.k2so_metrics_daemon, server.k2so_mission_state, server.nemik_hitm_bridge; print('✅ Todos los módulos Python cargaron sin errores.')"

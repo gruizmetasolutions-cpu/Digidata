@@ -7,12 +7,24 @@
 #include "cyd_display.h"
 #include "audio_synth.h"
 #include "auth_crypto.h"
-#include "pet_renderer.h"
 #include "wifi_manager.h"
 
 // ============================================================================
-// Dataholics Resolve ServiceDesk - Scrap-Hound Digipet
-// Cute Horror / Mad Max Edition (Hardware Cryptographic Silicon Binding)
+// Display Mode Configuration
+// Set USE_CYBER_FACE_RENDERER to 1 for the Expressive Animated Cyber-Face
+// Set USE_CYBER_FACE_RENDERER to 0 for the classic Scrap-Hound Yokai Gremlin
+// ============================================================================
+#define USE_CYBER_FACE_RENDERER 1
+
+#if USE_CYBER_FACE_RENDERER
+#include "face_renderer.h"
+#else
+#include "pet_renderer.h"
+#endif
+
+// ============================================================================
+// Dataholics Resolve ServiceDesk - DigiVice
+// Cute Horror / Cyber-Face Edition (Hardware Cryptographic Silicon Binding)
 // Target Board: ESP32-2432S028 (CYD 2.8" ST7789 320x240)
 // ============================================================================
 
@@ -33,7 +45,11 @@ String DEVICE_SECRET_KEY = "757618edd61e1f81993949992d11b46eb10d62db902c5e8d6742
 // Hardware & Peripheral Instances
 LGFX gfx;
 ScrapHoundAudio soundFx;
+#if USE_CYBER_FACE_RENDERER
+CyberFaceRenderer petRenderer(&gfx);
+#else
 ScrapHoundRenderer petRenderer(&gfx);
+#endif
 DigiPetWiFiManager wifiManager;
 
 // State Tracking
@@ -169,7 +185,7 @@ void pollResolveFeed() {
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) {
     String resp = http.getString();
-    JsonDocument doc;
+    DynamicJsonDocument doc(4096);
     DeserializationError err = deserializeJson(doc, resp);
 
     if (!err) {
@@ -449,6 +465,9 @@ void loop() {
   // Handle Touch Inputs
   uint16_t touchX, touchY;
   bool touched = gfx.getTouch(&touchX, &touchY);
+#if USE_CYBER_FACE_RENDERER
+  petRenderer.setTouch(touched, touchX, touchY);
+#endif
 
   if (touched) {
     if (touchStartTime == 0) {
