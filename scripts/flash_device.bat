@@ -32,11 +32,11 @@ echo [*] Conecta tu DigiVice por USB y asegurate de que no haya otro programa us
 echo.
 pause
 
-echo [*] Flasheando firmware a 921600 baudios en offset 0x10000...
-python -m esptool --chip esp32 --baud 921600 write_flash 0x10000 "%BIN_PATH%"
+echo [*] Flasheando imagen completa (bootloader + particiones + firmware) en COM7 a 460800 baudios...
+python -m esptool --chip esp32 --port COM7 --baud 460800 write_flash -z 0x1000 bootloader.bin 0x8000 partitions.bin 0xe000 boot_app0.bin 0x10000 "%BIN_PATH%"
 if %errorlevel% neq 0 (
-    echo [*] Reintentando especificamente en puerto COM7...
-    python -m esptool --chip esp32 --port COM7 --baud 921600 write_flash 0x10000 "%BIN_PATH%"
+    echo [*] Reintentando con autodeteccion de puerto a 115200 baudios...
+    python -m esptool --chip esp32 --baud 115200 write_flash -z 0x1000 bootloader.bin 0x8000 partitions.bin 0xe000 boot_app0.bin 0x10000 "%BIN_PATH%"
 )
 
 if %errorlevel% equ 0 (
