@@ -34,6 +34,10 @@ pause
 
 echo [*] Flasheando firmware a 921600 baudios en offset 0x10000...
 python -m esptool --chip esp32 --baud 921600 write_flash 0x10000 "%BIN_PATH%"
+if %errorlevel% neq 0 (
+    echo [*] Reintentando especificamente en puerto COM7...
+    python -m esptool --chip esp32 --port COM7 --baud 921600 write_flash 0x10000 "%BIN_PATH%"
+)
 
 if %errorlevel% equ 0 (
     echo.
